@@ -231,7 +231,7 @@ export default function EpisodeComments({
     }
   };
 
-  const renderCommentThread = (comment: Comment, depth = 0): JSX.Element => {
+  const renderCommentThread = (comment: Comment, depth = 0) => {
     const replies = grouped.replyMap.get(comment.id) || [];
     return (
       <div key={comment.id} className="space-y-3">

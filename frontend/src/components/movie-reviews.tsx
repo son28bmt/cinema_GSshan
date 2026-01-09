@@ -295,7 +295,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
     }
   };
 
-  const renderThread = (comment: Comment, depth = 0): JSX.Element => {
+  const renderThread = (comment: Comment, depth = 0) => {
     const replies = grouped.replyMap.get(comment.id) || [];
     return (
       <div key={comment.id} className="space-y-3">
