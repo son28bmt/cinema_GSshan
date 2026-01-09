@@ -99,10 +99,11 @@ export default function AdminShell({ children }: AdminShellProps) {
   }, []);
 
   const isActive = (href: string) => {
+    const currentPath = pathname || "";
     if (href === "/admin") {
-      return pathname === "/admin";
+      return currentPath === "/admin";
     }
-    return pathname.startsWith(href);
+    return currentPath.startsWith(href);
   };
 
   const handleLogout = () => {

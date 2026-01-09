@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const navItems = [
@@ -28,7 +28,6 @@ type MovieSuggestion = {
 export default function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isAuthed, setIsAuthed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
@@ -81,8 +80,18 @@ export default function SiteHeader() {
     if (!mounted) {
       return;
     }
-    setQuery(searchParams.get("q") || "");
-  }, [mounted, searchParams]);
+
+    const syncQueryFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setQuery(params.get("q") || "");
+    };
+
+    syncQueryFromUrl();
+    window.addEventListener("popstate", syncQueryFromUrl);
+    return () => {
+      window.removeEventListener("popstate", syncQueryFromUrl);
+    };
+  }, [mounted, pathname]);
 
   useEffect(() => {
     const handleAuthChange = () => {
