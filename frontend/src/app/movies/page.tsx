@@ -291,12 +291,16 @@ export default function MoviesPage() {
           >
             &lt;
           </button>
-          {pageItems.map((item, index) =>
-            item === "..." ? (
-              <span key={`ellipsis-${index}`} className="px-2 text-white/50">
-                ...
-              </span>
-            ) : (
+          {pageItems.map((item, index) => {
+            if (typeof item !== "number") {
+              return (
+                <span key={`ellipsis-${index}`} className="px-2 text-white/50">
+                  ...
+                </span>
+              );
+            }
+
+            return (
               <button
                 key={item}
                 className={`h-9 w-9 rounded-xl border text-sm ${
@@ -308,8 +312,8 @@ export default function MoviesPage() {
               >
                 {item}
               </button>
-            )
-          )}
+            );
+          })}
           <button
             className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white/70 disabled:opacity-50"
             onClick={() =>
