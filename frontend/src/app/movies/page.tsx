@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import MovieCard from "../../components/movie-card";
 import SectionHeading from "../../components/section-heading";
 import SiteFooter from "../../components/site-footer";
@@ -66,9 +66,9 @@ const getPageItems = (current: number, total: number) => {
   return items;
 };
 
-export default function MoviesPage() {
+function MoviesPageContent() {
   const searchParams = useSearchParams();
-  const searchTerm = (searchParams.get("q") || "").trim();
+  const searchTerm = (searchParams?.get("q") || "").trim();
 
   const [movies, setMovies] = useState<ApiMovie[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -333,5 +333,22 @@ export default function MoviesPage() {
       </main>
       <SiteFooter />
     </div>
+  );
+}
+
+export default function MoviesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen">
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-10 text-sm text-white/60">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
+            Dang tai danh sach phim...
+          </div>
+        </div>
+      }
+    >
+      <MoviesPageContent />
+    </Suspense>
   );
 }
