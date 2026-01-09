@@ -51,7 +51,7 @@ export default function HlsPlayer({ src, poster, className }: HlsPlayerProps) {
   return (
     <video
       ref={videoRef}
-      className={("h-full w-full bg-black", className)}
+      className={className}
       controls
       playsInline
       preload="metadata"
