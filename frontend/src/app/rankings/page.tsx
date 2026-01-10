@@ -109,6 +109,7 @@ export default function RankingsPage() {
   const topMovie = movies[0];
   const highlightCards = movies.slice(1, 3);
   const tableMovies = movies.slice(3);
+  const topDescription = stripHtml(topMovie?.description);
 
   useEffect(() => {
     const loadTopWatch = async () => {
@@ -197,7 +198,7 @@ export default function RankingsPage() {
                     {topMovie?.title || "Chưa có dữ liệu"}
                   </h2>
                   <p className="text-sm text-white/60 max-h-24 overflow-hidden md:max-h-none">
-                    {topMovie?.description || "Đang cập nhật nội dung phim."}
+                    {topDescription || "Đang cập nhật nội dung phim."}
                   </p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     {(topMovie?.genres
