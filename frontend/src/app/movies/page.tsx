@@ -181,7 +181,7 @@ function MoviesPageContent() {
       <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
         <SectionHeading
           title="Danh sách phim"
-          subtitle="Khám phá kho donghua kh?ng l?, c?p nh?t liên t?c các t?p phim hot"
+          subtitle="Khám phá kho donghua khổng lồ, cập nhật liên tục các tập phim hot"
           action={
             <div className="flex flex-wrap items-center gap-3">
               {sortOptions.map((option) => (
@@ -251,7 +251,7 @@ function MoviesPageContent() {
       ))}
     </select>
 
-    <span className="shrink-0 text-white/50">?</span>
+    <span className="shrink-0 text-white/50"> ⬇ </span>
   </div>
 
   {/* Status */}
