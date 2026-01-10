@@ -231,7 +231,7 @@ function MoviesPageContent() {
     </select>
 
     
-    <span className="shrink-0 text-white/50">?</span>
+    <span className="shrink-0 text-white/50">⬇</span>
   </div>
 
  

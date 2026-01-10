@@ -35,6 +35,14 @@ type Comment = {
   author_email: string | null;
 };
 
+const stripHtml = (value: string | null | undefined) =>
+  (value || "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .trim();
+
 type RankingMode = "views" | "rating" | "favorites";
 
 const modeLabels: Record<RankingMode, string> = {
@@ -267,7 +275,7 @@ export default function RankingsPage() {
                       <p className="mt-2 text-base font-semibold">{movie.title}</p>
                       <p className="text-xs text-white/50">{movie.genres || "--"}</p>
                       <p className="mt-2 text-xs text-yellow-400">
-                        Rating: {movie.rating_count ? movie.rating.toFixed(1) : "--"}
+                        ⭐ {movie.rating_count ? movie.rating.toFixed(1) : "--"}
                       </p>
                     </div>
                   ))
@@ -369,6 +377,7 @@ export default function RankingsPage() {
     </div>
   );
 }
+
 
 
 
