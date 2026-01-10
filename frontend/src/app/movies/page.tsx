@@ -222,7 +222,7 @@ function MoviesPageContent() {
       value={selectedYear}
       onChange={(event) => setSelectedYear(event.target.value)}
     >
-      <option value="all">T?t c?</option>
+      <option value="all">Tất cả</option>
       {years.map((year) => (
         <option key={year} value={year.toString()}>
           {year}
