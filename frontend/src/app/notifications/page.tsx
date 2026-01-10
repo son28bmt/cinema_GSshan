@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import SiteFooter from "../../components/site-footer";
@@ -43,7 +43,7 @@ export default function NotificationsPage() {
       try {
         const token = localStorage.getItem("cinema_token");
         if (!token) {
-          setError("Bạn chưa đăng nhập.");
+          setError("B?n chua dang nhập.");
           return;
         }
 
@@ -154,7 +154,7 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl space-y-6 px-6 pb-16 pt-10">
+      <main className="mx-auto max-w-5xl space-y-6 px-4 pb-16 pt-10 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">Thông báo</h1>
@@ -195,18 +195,18 @@ export default function NotificationsPage() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6 text-sm text-white/60">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6 text-sm text-white/60">
               Đang tải thông báo...
             </div>
           ) : filteredNotifications.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6 text-sm text-white/60">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6 text-sm text-white/60">
               Chưa có thông báo nào.
             </div>
           ) : (
             filteredNotifications.map((item) => (
               <div
                 key={item.id}
-                className={`rounded-2xl border border-white/10 bg-[var(--panel)] p-5 ${
+                className={`rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-5 ${
                   item.read_at ? "opacity-75" : ""
                 }`}
               >
@@ -240,7 +240,7 @@ export default function NotificationsPage() {
 
         {error ? <p className="text-sm text-red-300">{error}</p> : null}
 
-        <div className="flex items-center justify-center gap-2 text-sm">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
           {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
             <button
               key={page}
@@ -260,3 +260,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+

@@ -349,7 +349,7 @@ export default function AdminMovieCreatePage() {
                 <div className="flex items-center gap-2">
                   <input
                     className="flex-1 rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-sm text-white"
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    placeholder="https://www.youtube.com/watchtv=..."
                     value={trailerUrl}
                     onChange={(event) => setTrailerUrl(event.target.value)}
                   />

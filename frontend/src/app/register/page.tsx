@@ -72,7 +72,7 @@ export default function RegisterPage() {
               CineStream
             </div>
             <h1 className="font-display text-4xl font-semibold">
-              Bắt đầu hành trình cùng donghua.
+              Bắt đầu hành trình cộng đồnghua.
             </h1>
             <p className="max-w-md text-sm text-white/60">
               Tạo tài khoản miễn phí để theo dõi phim yêu thích, lưu lịch sử xem
@@ -81,8 +81,8 @@ export default function RegisterPage() {
           </div>
         </section>
 
-        <section className="flex items-center justify-center p-8">
-          <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-8">
+        <section className="flex items-center justify-center p-6 sm:p-8">
+          <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-6 sm:p-8">
             <div>
               <h2 className="font-display text-2xl font-semibold">Tạo tài khoản</h2>
               <p className="text-sm text-white/60">Điền thông tin để bắt đầu.</p>
@@ -94,7 +94,7 @@ export default function RegisterPage() {
                 className="flex-1 pb-2 text-center text-white/50 transition hover:text-white"
               >
                 Đăng nhập
-              </Link>
+              </Link> 
               <span className="flex-1 border-b-2 border-[var(--accent)] pb-2 text-center text-white">
                 Đăng ký
               </span>
@@ -158,7 +158,7 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
                   >
-                    {showConfirmPassword ? "Ẩn" : "Hiện"}
+                    {showConfirmPassword ? "ẩn" : "Hiện"}
                   </button>
                 </div>
               </label>
@@ -180,7 +180,7 @@ export default function RegisterPage() {
 
             <p className="text-xs text-white/50">
               Khi đăng ký, bạn đồng ý với
-              <span className="text-white/70"> Điều khoản </span>
+              <span className="text-white/70"> điều khoản </span>
               và
               <span className="text-white/70"> Chính sách bảo mật</span>.
             </p>
@@ -190,3 +190,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

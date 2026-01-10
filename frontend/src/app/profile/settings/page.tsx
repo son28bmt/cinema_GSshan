@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -270,7 +270,7 @@ export default function ProfileSettingsPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-8 px-6 pb-20 pt-10">
+      <main className="mx-auto max-w-6xl space-y-8 px-4 pb-20 pt-10 sm:px-6">
         <div>
           <h1 className="text-2xl font-semibold text-white">Cai dat tai khoan</h1>
           <p className="text-sm text-white/60">
@@ -284,14 +284,14 @@ export default function ProfileSettingsPage() {
           </div>
         ) : null}
 
-        <section className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        <section className="grid gap-4 sm:p-6 lg:grid-cols-[240px_1fr]">
           <aside className="space-y-3">
             {[
-              "Thong tin chung",
-              "Bao mat & Mat khau",
+              "Thông tin chung",
+              "Bảo mật & Mật khẩu",
               "Thông báo",
-              "Thiet bi",
-              "Goi dich vu",
+              "Thiết bị",
+              "Gói dịch vụ",
             ].map((item, index) => (
               <div
                 key={item}
@@ -307,8 +307,8 @@ export default function ProfileSettingsPage() {
           </aside>
 
           <div className="space-y-6">
-            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
-              <h3 className="text-sm font-semibold">Thong tin ca nhan</h3>
+            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+              <h3 className="text-sm font-semibold">Thông tin cá nhân</h3>
               <div className="mt-4 grid gap-4 md:grid-cols-[120px_1fr_1fr]">
                 <div className="flex flex-col items-center gap-3">
                   <div className="h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-white/5">
@@ -359,7 +359,7 @@ export default function ProfileSettingsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <h3 className="text-sm font-semibold">Bao mat tai khoan</h3>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -438,11 +438,11 @@ export default function ProfileSettingsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
-              <h3 className="text-sm font-semibold">Cai dat Thông báo</h3>
+            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+              <h3 className="text-sm font-semibold">Cài đặt Thông báo</h3>
               <div className="mt-4 space-y-3">
                 <label className="flex items-center justify-between text-sm text-white/70">
-                  Phim moi ra mat
+                  Phim mới ra mắt
                   <input
                     type="checkbox"
                     checked={notifyNewMovies}
@@ -451,7 +451,7 @@ export default function ProfileSettingsPage() {
                   />
                 </label>
                 <label className="flex items-center justify-between text-sm text-white/70">
-                  Cap nhat tap moi
+                  Cập nhật tập mới
                   <input
                     type="checkbox"
                     checked={notifyNewEpisodes}
@@ -480,11 +480,11 @@ export default function ProfileSettingsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
-              <h3 className="text-sm font-semibold">Thiet bi da dang nhap</h3>
+            <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+              <h3 className="text-sm font-semibold">Thiết bị đã đăng nhập</h3>
               <div className="mt-4 space-y-3">
                 {devices.length === 0 ? (
-                  <p className="text-xs text-white/50">Chua co thiet bi.</p>
+                  <p className="text-xs text-white/50">Chưa có thiết bị.</p>
                 ) : (
                   devices.map((device) => (
                     <div
@@ -522,4 +522,5 @@ export default function ProfileSettingsPage() {
     </div>
   );
 }
+
 

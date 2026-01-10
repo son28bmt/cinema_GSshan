@@ -138,12 +138,12 @@ export default function RankingsPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-10 px-6 pb-20 pt-10">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
         <SectionHeading
           title="Bảng xếp hạng"
           subtitle="Cập nhật liên tục các bộ phim hot nhất trên nền tảng"
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {(Object.keys(modeLabels) as RankingMode[]).map((label) => (
                 <button
                   key={label}
@@ -165,8 +165,8 @@ export default function RankingsPage() {
 
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-[var(--panel)] p-6">
-              <div className="flex items-center justify-between">
+            <div className="rounded-3xl border border-white/10 bg-[var(--panel)] p-5 sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold">
                   #1 Trending
                 </span>
@@ -183,12 +183,12 @@ export default function RankingsPage() {
                   </button>
                 )}
               </div>
-              <div className="mt-6 grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
+              <div className="mt-6 grid gap-4 sm:gap-6 md:grid-cols-[1.2fr_0.8fr]">
                 <div className="space-y-3">
-                  <h2 className="font-display text-2xl font-semibold">
+                  <h2 className="font-display text-xl font-semibold sm:text-2xl">
                     {topMovie?.title || "Chưa có dữ liệu"}
                   </h2>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-white/60 max-h-24 overflow-hidden md:max-h-none">
                     {topMovie?.description || "Đang cập nhật nội dung phim."}
                   </p>
                   <div className="flex flex-wrap gap-2 text-xs">
@@ -222,7 +222,7 @@ export default function RankingsPage() {
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {loading ? (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-white/60">
                   Đang tải dữ liệu...
@@ -238,7 +238,7 @@ export default function RankingsPage() {
                     className="rounded-2xl border border-white/10 bg-white/5 p-5"
                   >
                     <p className="text-xs text-white/50">#{index + 2}</p>
-                    <p className="mt-2 text-lg font-semibold">{movie.title}</p>
+                    <p className="mt-2 text-base font-semibold sm:text-lg">{movie.title}</p>
                     <p className="text-xs text-white/50">
                       {movie.genres || "Chưa phân loại"}
                     </p>
@@ -250,43 +250,67 @@ export default function RankingsPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
-              <div className="grid grid-cols-[0.6fr_1.4fr_0.6fr_0.6fr] text-xs text-white/50">
-                <span>Hạng</span>
-                <span>Phim</span>
-                <span>Đánh giá</span>
-                <span>Lượt xem</span>
-              </div>
-              <div className="mt-4 space-y-4">
+                        <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+              <div className="space-y-3 sm:hidden">
                 {tableMovies.length === 0 ? (
-                  <p className="text-sm text-white/60">Chưa có dữ liệu.</p>
+                  <p className="text-sm text-white/60">Chua co du lieu.</p>
                 ) : (
                   tableMovies.map((movie, index) => (
                     <div
                       key={movie.id}
-                      className="grid grid-cols-[0.6fr_1.4fr_0.6fr_0.6fr] items-center text-sm"
+                      className="rounded-2xl border border-white/10 bg-white/5 p-4"
                     >
-                      <span className="text-white/60">{index + 4}</span>
-                      <div>
-                        <p className="font-semibold">{movie.title}</p>
-                        <p className="text-xs text-white/50">{movie.genres || "—"}</p>
+                      <div className="flex items-center justify-between text-xs text-white/50">
+                        <span>#{index + 4}</span>
+                        <span>{movie.views ? formatViews(movie.views) : "--"} views</span>
                       </div>
-                      <span className="text-yellow-400">
-                        ⭐ {movie.rating_count ? movie.rating.toFixed(1) : "—"}
-                      </span>
-                      <span className="text-white/60">
-                        {movie.views ? formatViews(movie.views) : "—"}
-                      </span>
+                      <p className="mt-2 text-base font-semibold">{movie.title}</p>
+                      <p className="text-xs text-white/50">{movie.genres || "--"}</p>
+                      <p className="mt-2 text-xs text-yellow-400">
+                        Rating: {movie.rating_count ? movie.rating.toFixed(1) : "--"}
+                      </p>
                     </div>
                   ))
                 )}
+              </div>
+              <div className="hidden sm:block overflow-x-auto">
+                <div className="min-w-[420px] grid grid-cols-[0.6fr_1.4fr_0.6fr_0.6fr] text-xs text-white/50">
+                  <span>Hang</span>
+                  <span>Phim</span>
+                  <span>Danh gia</span>
+                  <span>Luot xem</span>
+                </div>
+                <div className="mt-4 space-y-4">
+                  {tableMovies.length === 0 ? (
+                    <p className="text-sm text-white/60">Chua co du lieu.</p>
+                  ) : (
+                    tableMovies.map((movie, index) => (
+                      <div
+                        key={movie.id}
+                        className="min-w-[420px] grid grid-cols-[0.6fr_1.4fr_0.6fr_0.6fr] items-center text-sm"
+                      >
+                        <span className="text-white/60">{index + 4}</span>
+                        <div>
+                          <p className="font-semibold">{movie.title}</p>
+                          <p className="text-xs text-white/50">{movie.genres || "--"}</p>
+                        </div>
+                        <span className="text-yellow-400">
+                          {movie.rating_count ? movie.rating.toFixed(1) : "--"}
+                        </span>
+                        <span className="text-white/60">
+                          {movie.views ? formatViews(movie.views) : "--"}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6 overflow-x-auto">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-sm font-semibold">Thể loại thịnh hành</h3>
                 <Link href="/movies" className="text-xs text-[var(--accent-2)]">
                   Xem tất cả
@@ -303,14 +327,14 @@ export default function RankingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6 overflow-x-auto">
               <h3 className="text-sm font-semibold">Top bình luận</h3>
               <div className="mt-4 space-y-3">
                 {comments.length === 0 ? (
                   <p className="text-xs text-white/50">Chưa có bình luận.</p>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className="flex items-center justify-between">
+                    <div key={comment.id} className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-sm">{comment.author_name}</p>
                         <p className="text-xs text-white/50">
@@ -345,3 +369,7 @@ export default function RankingsPage() {
     </div>
   );
 }
+
+
+
+

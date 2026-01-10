@@ -188,12 +188,12 @@ export default function SchedulePage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-10 px-6 pb-20 pt-10">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
         <SectionHeading
           title="Lịch phát sóng"
           subtitle="Cập nhật lịch chiếu phim mới nhất hôm nay"
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70"
                 onClick={() => setShowDatePicker((prev) => !prev)}
@@ -211,7 +211,7 @@ export default function SchedulePage() {
         />
 
         {showDatePicker ? (
-          <div className="flex items-center gap-3 text-xs text-white/70">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-white/70">
             <span>Chọn ngày:</span>
             <input
               type="date"
@@ -253,8 +253,8 @@ export default function SchedulePage() {
 
         {error ? <p className="text-sm text-red-300">{error}</p> : null}
 
-        <section className="rounded-3xl border border-white/10 bg-[var(--panel)] p-6">
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="rounded-3xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+          <div className="grid gap-4 sm:p-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-4">
               <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-[10px] font-semibold uppercase">
                 Độc quyền
@@ -309,10 +309,10 @@ export default function SchedulePage() {
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-4 sm:p-6 lg:grid-cols-2">
           <div className="space-y-6">
             <SectionHeading title="Mới cập nhật" action={<span className="text-xs text-green-400">LIVE</span>} />
-            <div className="grid gap-4">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
               {loading ? (
                 <p className="text-sm text-white/60">Đang tải dữ liệu...</p>
               ) : filteredLatest.length === 0 ? (
@@ -333,7 +333,7 @@ export default function SchedulePage() {
           </div>
           <div className="space-y-6">
             <SectionHeading title="Sắp chiếu tối nay" />
-            <div className="grid gap-4">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
               {loading ? (
                 <p className="text-sm text-white/60">Đang tải dữ liệu...</p>
               ) : filteredSchedule.length === 0 ? (
@@ -358,3 +358,4 @@ export default function SchedulePage() {
     </div>
   );
 }
+

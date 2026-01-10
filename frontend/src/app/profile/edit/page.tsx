@@ -47,7 +47,7 @@ export default function EditProfilePage() {
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          setError(data.message || "Không thể tải hổ sơ.");
+          setError(data.message || "Không thể tải hồ sơ.");
           return;
         }
         const profile = data.user as UserProfile;
@@ -59,7 +59,7 @@ export default function EditProfilePage() {
         setBio(profile?.bio || "");
         setAvatarPreview(profile?.avatar_url || null);
       } catch (err) {
-        setError("Không thể tải hổ sơ.");
+        setError("Không thể tải hồ sơ.");
       } finally {
         setLoading(false);
       }
@@ -111,14 +111,14 @@ export default function EditProfilePage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.message || "Cap nhat that bai.");
+        setError(data.message || "Cập nhật thất bại.");
         return;
       }
 
       setUser(data.user || null);
       router.push("/profile");
     } catch (err) {
-      setError("Cap nhat that bai.");
+      setError("Cập nhật thất bại.");
     } finally {
       setSaving(false);
     }
@@ -127,7 +127,7 @@ export default function EditProfilePage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl space-y-8 px-6 pb-20 pt-10">
+      <main className="mx-auto max-w-5xl space-y-8 px-4 pb-20 pt-10 sm:px-6">
         <div className="flex items-center gap-3 text-sm text-white/70">
           <button
             onClick={() => router.back()}
@@ -138,7 +138,7 @@ export default function EditProfilePage() {
           <div>
             <h1 className="text-xl font-semibold text-white">Chỉnh sửa hồ sơ</h1>
             <p className="text-xs text-white/50">
-              Quản lý thông tin cá nhân của bạn tại đây.
+              Quản lí thông tin cá nhân của bạn tại đây.
             </p>
           </div>
         </div>
@@ -149,11 +149,11 @@ export default function EditProfilePage() {
           </div>
         ) : null}
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-          <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+        <section className="grid gap-4 sm:p-6 lg:grid-cols-[1fr_2fr]">
+          <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
             <p className="text-sm font-semibold">Ảnh đại diện</p>
             <p className="mt-2 text-xs text-white/50">
-              Hổ trợ JPG/PNG. Kích thước tối đa 2MB.
+              Hỗ trợ JPG/PNG. Kích thước tối đa 2MB.
             </p>
             <div className="mt-4 flex items-center gap-4">
               <div className="relative h-24 w-24 overflow-hidden rounded-full border border-white/10 bg-white/5">
@@ -192,7 +192,7 @@ export default function EditProfilePage() {
             />
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+          <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2 text-xs text-white/60">
                 Họ và tên
@@ -268,4 +268,5 @@ export default function EditProfilePage() {
     </div>
   );
 }
+
 

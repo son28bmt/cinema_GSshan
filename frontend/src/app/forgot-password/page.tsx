@@ -1,10 +1,10 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <div className="flex min-h-screen items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-8">
+      <div className="flex min-h-screen items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-6 sm:p-8">
           <div>
             <h2 className="font-display text-2xl font-semibold">Quên mật khẩu</h2>
             <p className="text-sm text-white/60">
@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
               className="w-full rounded-full bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white"
               type="submit"
             >
-              Gửi yêu cầu
+              Gửii yêu cầu
             </button>
           </form>
 
@@ -39,3 +39,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

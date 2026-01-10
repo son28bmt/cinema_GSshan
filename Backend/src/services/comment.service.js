@@ -25,12 +25,15 @@ const listComments = async ({ limit = 20, movieId, episodeId, status }) => {
       c.content,
       c.status,
       c.parent_id,
+      c.movie_id,
+      c.episode_id,
       c.report_reason,
       c.created_at,
       c.author_ip,
       COALESCE(u.name, c.author_name, 'Khach') AS author_name,
       u.email AS author_email,
       m.title AS movie_title,
+      m.slug AS movie_slug,
       e.episode_number AS episode_number
      FROM comments c
      LEFT JOIN users u ON u.id = c.user_id
@@ -73,12 +76,15 @@ const createComment = async ({
       c.content,
       c.status,
       c.parent_id,
+      c.movie_id,
+      c.episode_id,
       c.report_reason,
       c.created_at,
       c.author_ip,
       COALESCE(u.name, c.author_name, 'Khach') AS author_name,
       u.email AS author_email,
       m.title AS movie_title,
+      m.slug AS movie_slug,
       e.episode_number AS episode_number
      FROM comments c
      LEFT JOIN users u ON u.id = c.user_id
@@ -119,12 +125,15 @@ const reportComment = async ({ commentId, reason }) => {
       c.content,
       c.status,
       c.parent_id,
+      c.movie_id,
+      c.episode_id,
       c.report_reason,
       c.created_at,
       c.author_ip,
       COALESCE(u.name, c.author_name, 'Khach') AS author_name,
       u.email AS author_email,
       m.title AS movie_title,
+      m.slug AS movie_slug,
       e.episode_number AS episode_number
      FROM comments c
      LEFT JOIN users u ON u.id = c.user_id

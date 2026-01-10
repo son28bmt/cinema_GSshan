@@ -296,7 +296,7 @@ export default function AdminCommentsPage() {
                   </div>
                   <p className="text-xs text-white/60">
                     {comment.movie_title || "-"}
-                    {comment.episode_number ? ` · Tap ${comment.episode_number}` : ""}
+                    {comment.episode_number ? ` · Tập ${comment.episode_number}` : ""}
                   </p>
                   <span
                     className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${

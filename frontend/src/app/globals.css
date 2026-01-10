@@ -45,6 +45,30 @@ img {
   display: block;
 }
 
+select,
+select option {
+  background-color: #2b1116;
+  color: #f8f5f7;
+}
+
+.filter-select {
+  appearance: none;
+  background-color: #1a1318;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f8f5f7;
+  border-radius: 9999px;
+  padding: 0.45rem 0.85rem;
+  min-height: 40px;
+  line-height: 1.4;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: rgba(239, 43, 79, 0.6);
+  box-shadow: 0 0 0 3px rgba(239, 43, 79, 0.15);
+}
+
 .font-display {
   font-family: var(--font-display), var(--font-body), "Segoe UI", sans-serif;
 }
@@ -57,3 +81,4 @@ img {
     scroll-behavior: auto !important;
   }
 }
+

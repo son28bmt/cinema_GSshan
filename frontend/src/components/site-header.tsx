@@ -7,8 +7,6 @@ import { useEffect, useRef, useState } from "react";
 const navItems = [
   { label: "Trang chủ", href: "/" },
   { label: "Danh sách", href: "/movies" },
-  // { label: "Phim bộ", href: "/movies?type=series" },
-  // { label: "Phim lẻ", href: "/movies?type=single" },
   { label: "Lịch chiếu", href: "/schedule" },
   { label: "Bảng xếp hạng", href: "/rankings" },
   { label: "Cộng đồng", href: "/community" },
@@ -30,6 +28,7 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const [isAuthed, setIsAuthed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<MovieSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -58,7 +57,7 @@ export default function SiteHeader() {
     try {
       const response = await fetch(`${API_URL}/api/notifications/unread-count`, {
         headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store"
+        cache: "no-store",
       });
       if (!response.ok) {
         setUnreadCount(0);
@@ -154,7 +153,7 @@ export default function SiteHeader() {
           { signal: controller.signal }
         );
         if (!response.ok) {
-          throw new Error("tìm kiếm thất bại!!");
+          throw new Error("search failed");
         }
         const data = await response.json();
         setSuggestions(data.movies || []);
@@ -165,7 +164,7 @@ export default function SiteHeader() {
           return;
         }
         setSuggestions([]);
-        setSearchError("Không tìm thấy dữ liệu.");
+        setSearchError("Khong tim thay du lieu.");
       } finally {
         setIsSearching(false);
       }
@@ -182,6 +181,7 @@ export default function SiteHeader() {
       return;
     }
     setIsSuggestionsOpen(false);
+    setIsMenuOpen(false);
   }, [mounted, pathname]);
 
   const handleLogout = () => {
@@ -189,6 +189,7 @@ export default function SiteHeader() {
     setIsAuthed(false);
     setUnreadCount(0);
     router.replace("/login");
+    setIsMenuOpen(false);
   };
 
   const handleSearchSubmit = () => {
@@ -198,6 +199,7 @@ export default function SiteHeader() {
     }
     setIsSuggestionsOpen(false);
     router.push(`/movies?q=${encodeURIComponent(trimmed)}`);
+    setIsMenuOpen(false);
   };
 
   const handleFocus = () => {
@@ -218,7 +220,7 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-[rgba(16,7,10,0.85)] backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 font-display text-lg font-semibold"
@@ -241,7 +243,7 @@ export default function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <label className="relative hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/60 xl:flex">
             <svg
               className="h-4 w-4"
@@ -272,11 +274,11 @@ export default function SiteHeader() {
             {mounted && isSuggestionsOpen && query.trim().length > 0 ? (
               <div className="absolute left-0 top-full mt-3 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0f141d] text-xs text-white/70 shadow-xl">
                 {isSearching ? (
-                  <div className="px-4 py-3 text-white/60">Đang tìm...</div>
+                  <div className="px-4 py-3 text-white/60">Dang tim...</div>
                 ) : searchError ? (
                   <div className="px-4 py-3 text-red-300">{searchError}</div>
                 ) : suggestions.length === 0 ? (
-                  <div className="px-4 py-3 text-white/60">Không có kết quả.</div>
+                  <div className="px-4 py-3 text-white/60">Khong co ket qua.</div>
                 ) : (
                   <div className="max-h-72 overflow-auto">
                     {suggestions.map((movie) => (
@@ -315,14 +317,9 @@ export default function SiteHeader() {
               <Link
                 href="/notifications"
                 className="relative grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-sm"
-                aria-label="Thông báo"
+                aria-label="Thong bao"
               >
-                <svg
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-hidden
-                >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d="M12 2a6 6 0 016 6v4l2 3H4l2-3V8a6 6 0 016-6z" />
                 </svg>
                 {unreadCount > 0 ? (
@@ -333,17 +330,17 @@ export default function SiteHeader() {
               </Link>
               <button
                 onClick={handleLogout}
-                className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/80 transition hover:border-white/30"
+                className="hidden rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/80 transition hover:border-white/30 sm:inline-flex"
               >
-                Đăng xuất
+                Đăng Xuất
               </button>
             </>
           ) : (
             <Link
               href="/login"
-              className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[rgba(239,43,79,0.35)]"
+              className="hidden rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[rgba(239,43,79,0.35)] sm:inline-flex"
             >
-              Đăng Nhập
+              Dang nhap
             </Link>
           )}
 
@@ -363,8 +360,133 @@ export default function SiteHeader() {
               <path d="M4 20c1.8-3.3 5-5 8-5s6.2 1.7 8 5" />
             </svg>
           </Link>
+
+          <button
+            className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-sm lg:hidden"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-label="Mo menu"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      {isMenuOpen ? (
+        <div className="border-t border-white/5 bg-[rgba(16,7,10,0.95)] lg:hidden">
+          <div className="mx-auto max-w-6xl space-y-4 px-4 py-4 sm:px-6">
+            <div className="relative">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/60">
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20L17 17" />
+                </svg>
+                <input
+                  className="w-full bg-transparent text-xs text-white placeholder:text-white/40 focus:outline-none"
+                  placeholder="Tim kiem phim"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleSearchSubmit();
+                    }
+                  }}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                />
+              </div>
+
+              {mounted && isSuggestionsOpen && query.trim().length > 0 ? (
+                <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#0f141d] text-xs text-white/70 shadow-xl">
+                  {isSearching ? (
+                    <div className="px-4 py-3 text-white/60">Dang tim...</div>
+                  ) : searchError ? (
+                    <div className="px-4 py-3 text-red-300">{searchError}</div>
+                  ) : suggestions.length === 0 ? (
+                    <div className="px-4 py-3 text-white/60">Khong co ket qua.</div>
+                  ) : (
+                    <div className="max-h-72 overflow-auto">
+                      {suggestions.map((movie) => (
+                        <Link
+                          key={movie.id}
+                          href={`/movies/${movie.slug}`}
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/5"
+                        >
+                          <div className="h-10 w-8 overflow-hidden rounded-lg bg-white/10">
+                            {movie.poster_url ? (
+                              <img
+                                src={movie.poster_url}
+                                alt={movie.title}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : null}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm text-white">{movie.title}</p>
+                            <p className="text-[11px] text-white/50">
+                              {movie.release_year ? movie.release_year : "Chua ro"}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+
+            <nav className="grid gap-2 text-sm text-white/75">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              {mounted && isAuthed ? (
+                <button
+                  onClick={handleLogout}
+                  className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/80"
+                >
+                  Đăng Xuất
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
+                >
+                  Dang nhap
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

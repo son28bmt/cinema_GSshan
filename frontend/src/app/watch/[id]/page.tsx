@@ -119,8 +119,8 @@ export default async function WatchPage({
     <div className="min-h-screen">
       <SiteHeader />
       <WatchHistoryTracker movieId={detail.movie_id} episodeId={detail.id} />
-      <main className="mx-auto max-w-6xl space-y-10 px-6 pb-20 pt-10">
-        <section className="grid gap-6 lg:grid-cols-[1.6fr_0.8fr]">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
+        <section className="grid gap-4 sm:p-6 lg:grid-cols-[1.6fr_0.8fr]">
           <div className="space-y-6">
             <div className="relative aspect-video rounded-3xl border border-white/10 bg-[var(--panel)] overflow-hidden">
               <div className="relative h-full w-full overflow-hidden rounded-[1.35rem] bg-black/40 " style={{ aspectRatio: "16 / 9" }}>
@@ -142,14 +142,14 @@ export default async function WatchPage({
                 )}
                 {!detail.video_url ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-white/70">
-                    <span>Chua co link video cho tap nay</span>
+                    <span>Chưa có Link cho tập này</span>
                   </div>
                 ) : null}
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <SectionHeading
-                title={`${detail.movie_title} - Tap ${detail.episode_number}`}
+                title={`${detail.movie_title} - Tập ${detail.episode_number}`}
                 subtitle={
                   subtitleText
                     ? `${subtitleText} | ${statusLabels[detail.movie_status] || detail.movie_status}`
@@ -158,7 +158,7 @@ export default async function WatchPage({
               />
               <div className="mt-4 flex flex-wrap gap-3 text-xs">
                 {servers.length === 0 ? (
-                  <span className="text-xs text-white/60">Chưa có server.</span>
+                  <span className="text-xs text-white/60">chưa có server.</span>
                 ) : (
                   servers.map((server, index) => {
                     const isPrimary = index === 0 && server.status === "active";
@@ -184,11 +184,11 @@ export default async function WatchPage({
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <SectionHeading title="Danh sách tập" />
-              <div className="mt-4 grid grid-cols-4 gap-2">
+              <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {episodes.length === 0 ? (
-                  <p className="col-span-full text-xs text-white/60">Chua co tap nao.</p>
+                  <p className="col-span-full text-xs text-white/60">Chưa có tập nào.</p>
                 ) : (
                   episodes.map((episode) => (
                     <Link
@@ -214,3 +214,4 @@ export default async function WatchPage({
     </div>
   );
 }
+

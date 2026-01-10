@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("Vui lòng nhập email và mật khẩu.");
+      setError("Vui long nhap email va mat khau.");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(data.message || "Đăng nhập thất bại.");
+        setError(data.message || "Dang nhap that bai.");
         return;
       }
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
         router.push("/");
       }
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Khong the ket noi backend.");
     } finally {
       setLoading(false);
     }
@@ -68,11 +68,11 @@ export default function LoginPage() {
               CineStream
             </div>
             <h1 className="font-display text-4xl font-semibold">
-              Thế giới điện ảnh trong tầm tay bạn.
+              The gioi dien anh trong tam tay ban.
             </h1>
             <p className="max-w-md text-sm text-white/60">
-              Trải nghiệm hàng ngàn bộ phim bom tấn, donghua độc quyền và chương
-              trình giải trí chất lượng cao. Đăng nhập để tiếp tục hành trình.
+              Trai nghiem hang ngan bo phim bom tan, donghua doc quyen va chuong
+              trinh giai tri chat luong cao. Dang nhap de tiep tuc hanh trinh.
             </p>
             <div className="flex items-center gap-4 text-xs text-white/60">
               <div className="flex -space-x-2">
@@ -80,27 +80,27 @@ export default function LoginPage() {
                 <span className="h-8 w-8 rounded-full border border-white/10 bg-white/20" />
                 <span className="h-8 w-8 rounded-full border border-white/10 bg-white/30" />
               </div>
-              <span>+2tr người dùng tin tưởng</span>
+              <span>+2tr nguoi dung tin tuong</span>
             </div>
           </div>
         </section>
 
-        <section className="flex items-center justify-center p-8">
-          <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-8">
+        <section className="flex items-center justify-center p-6 sm:p-8">
+          <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-6 sm:p-8">
             <div>
-              <h2 className="font-display text-2xl font-semibold">Chào mừng trở lại!</h2>
-              <p className="text-sm text-white/60">Vui lòng nhập thông tin đăng nhập.</p>
+              <h2 className="font-display text-2xl font-semibold">Chao mung tro lai!</h2>
+              <p className="text-sm text-white/60">Vui long nhap thong tin dang nhap.</p>
             </div>
 
             <div className="flex gap-4 text-sm">
               <span className="flex-1 border-b-2 border-[var(--accent)] pb-2 text-center text-white">
-                Đăng nhập
+                Dang nhap
               </span>
               <Link
                 href="/register"
                 className="flex-1 pb-2 text-center text-white/50 transition hover:text-white"
               >
-                Đăng ký
+                Dang ky
               </Link>
             </div>
 
@@ -117,11 +117,11 @@ export default function LoginPage() {
                 />
               </label>
               <label className="space-y-2 text-sm text-white/70">
-                Mật khẩu
+                Mat khau
                 <div className="flex items-center rounded-2xl border border-white/10 bg-white/5 px-4">
                   <input
                     className="w-full bg-transparent py-3 text-sm text-white placeholder:text-white/40 focus:outline-none"
-                    placeholder="Nhập mật khẩu"
+                    placeholder="Nhap mat khau"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
@@ -132,13 +132,13 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
-                    {showPassword ? "Ẩn" : "Hiện"}
+                    {showPassword ? "An" : "Hien"}
                   </button>
                 </div>
               </label>
               <div className="flex justify-end">
                 <Link href="/forgot-password" className="text-xs text-[var(--accent-2)]">
-                  Quên mật khẩu?
+                  Quen mat khau?
                 </Link>
               </div>
 
@@ -153,13 +153,13 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? "Đang xử lý..." : "Đăng nhập"}
+                {loading ? "Dang xu ly..." : "Dang nhap"}
               </button>
             </form>
 
             <div className="flex items-center gap-3 text-xs text-white/50">
               <span className="h-px flex-1 bg-white/10" />
-              Hoặc tiếp tục với
+              Hoac tiep tuc voi
               <span className="h-px flex-1 bg-white/10" />
             </div>
 
@@ -173,10 +173,10 @@ export default function LoginPage() {
             </div>
 
             <p className="text-xs text-white/50">
-              Bằng việc đăng nhập, bạn đồng ý với
-              <span className="text-white/70"> Điều khoản </span>
-              và
-              <span className="text-white/70"> Chính sách bảo mật</span>.
+              Bang viec dang nhap, ban dong y voi
+              <span className="text-white/70"> Dieu khoan </span>
+              va
+              <span className="text-white/70"> Chinh sach bao mat</span>.
             </p>
           </div>
         </section>

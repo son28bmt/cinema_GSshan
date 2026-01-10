@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link"
 
 const footerLinks = {
   "Khám phá": [
@@ -18,22 +18,20 @@ const footerLinks = {
     { label: "Instagram", href: "#" },
     { label: "YouTube", href: "#" },
   ],
-};
+}
 
 export default function SiteFooter() {
   return (
     <footer className="border-t border-white/5 bg-[var(--panel)]">
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-12 md:grid-cols-[1.2fr_1fr_1fr_0.8fr]">
+      {/* Desktop Layout */}
+      <div className="hidden md:grid mx-auto max-w-6xl px-6 py-12 gap-10 grid-cols-[1.2fr_1fr_1fr_0.8fr]">
         <div className="space-y-4">
           <div className="flex items-center gap-2 font-display text-lg font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--accent)] text-white">
-              GS
-            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--accent)] text-white">GS</span>
             CineStream
           </div>
           <p className="text-sm text-white/60">
-            Nền tảng xem phim trực tuyến chất lượng cao, tập trung donghua và
-            cộng đồng fan đam mê.
+            Nền tảng xem phim trực tuyến chất lượng cao, tập trung donghua và cộng đồng fan đam mê.
           </p>
         </div>
 
@@ -53,12 +51,42 @@ export default function SiteFooter() {
         ))}
       </div>
 
+      <div className="md:hidden mx-auto max-w-6xl px-3 py-4">
+        {/* Logo and description */}
+        <div className="space-y-2 pb-3 border-b border-white/10">
+          <div className="flex items-center gap-1.5">
+            <span className="grid h-6 w-6 place-items-center rounded bg-[var(--accent)] text-white text-[10px] font-bold">
+              GS
+            </span>
+            <span className="font-semibold text-sm text-white">CineStream</span>
+          </div>
+        </div>
+
+        {/* Links in columns */}
+        <div className="grid grid-cols-3 gap-3 py-3">
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title} className="text-xs">
+              <p className="font-semibold text-white/70 mb-2">{title}</p>
+              <ul className="space-y-1 text-white/50">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="transition hover:text-white">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="border-t border-white/5">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-white/50 md:flex-row">
-          <span>© 2026 CineStream. All rights reserved.</span>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-3 py-3 md:px-6 md:py-6 text-xs text-white/50 md:flex-row">
+          <span>2026 CineStream. All rights reserved.</span>
           <span>Thiết kế riêng cho nền tảng donghua.</span>
         </div>
       </div>
     </footer>
-  );
+  )
 }

@@ -39,14 +39,14 @@ type SortMode = "latest" | "views" | "rating";
 type StatusFilter = "all" | "ongoing" | "completed";
 
 const sortOptions: { label: string; value: SortMode }[] = [
-  { label: "Mới cập nhật", value: "latest" },
-  { label: "Xem nhiều", value: "views" },
-  { label: "Đánh giá cao", value: "rating" },
+  { label: "M?i c?p nh?t", value: "latest" },
+  { label: "Xem nhi?u", value: "views" },
+  { label: "Ðánh giá cao", value: "rating" },
 ];
 
 const statusOptions: { label: string; value: StatusFilter }[] = [
-  { label: "Tất cả", value: "all" },
-  { label: "Đang chiếu", value: "ongoing" },
+  { label: "t?t c?", value: "all" },
+  { label: "Ðang chi?u", value: "ongoing" },
   { label: "Hoàn thành", value: "completed" },
 ];
 
@@ -107,7 +107,7 @@ function MoviesPageContent() {
           setCountries(filterData.countries || []);
         }
       } catch (err) {
-        setError("Không thể tải bộ lọc.");
+        setError("Không th? t?i b? l?c");
       }
     };
 
@@ -133,7 +133,7 @@ function MoviesPageContent() {
           cache: "no-store",
         });
         if (!response.ok) {
-          setError("Không tải được dữ liệu phim.");
+          setError("không t?i du?c d? li?u phim.");
           return;
         }
         const data = await response.json();
@@ -142,7 +142,7 @@ function MoviesPageContent() {
           data.pagination || { page: currentPage, total: 0, totalPages: 1 }
         );
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("không th? k?t n?i backend.");
       } finally {
         setLoading(false);
       }
@@ -178,10 +178,10 @@ function MoviesPageContent() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-10 px-6 pb-20 pt-10">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
         <SectionHeading
           title="Danh sách phim"
-          subtitle="Khám phá kho donghua khổng lồ, cập nhật liên tục các tựa phim hot"
+          subtitle="Khám phá kho donghua kh?ng l?, c?p nh?t liên t?c các t?p phim hot"
           action={
             <div className="flex flex-wrap items-center gap-3">
               {sortOptions.map((option) => (
@@ -213,58 +213,71 @@ function MoviesPageContent() {
         </div>
 
         <div className="flex flex-wrap gap-3 text-xs text-white/70">
-          <label className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2">
-            Năm:
-            <select
-              className="bg-transparent text-xs text-white/80 focus:outline-none"
-              value={selectedYear}
-              onChange={(event) => setSelectedYear(event.target.value)}
-            >
-              <option value="all">Tất cả</option>
-              {years.map((year) => (
-                <option key={year} value={year.toString()}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2">
-            QG:
-            <select
-              className="bg-transparent text-xs text-white/80 focus:outline-none"
-              value={selectedCountry}
-              onChange={(event) => setSelectedCountry(event.target.value)}
-            >
-              <option value="all">Tất cả</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-          </label>
-          {statusOptions.map((status) => (
-            <button
-              key={status.value}
-              onClick={() => setSelectedStatus(status.value)}
-              className={`rounded-full border px-3 py-2 ${
-                selectedStatus === status.value
-                  ? "border-[var(--accent)] bg-[rgba(239,43,79,0.16)] text-white"
-                  : "border-white/10 bg-white/5 text-white/70"
-              }`}
-            >
-              {status.label}
-            </button>
-          ))}
-        </div>
+  {/* Nam */}
+  <div className="flex w-full items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 sm:w-auto">
+    <span className="shrink-0">Nam:</span>
+
+    <select
+      className="filter-select min-w-0 flex-1 bg-transparent text-xs text-white/80 sm:w-40"
+      value={selectedYear}
+      onChange={(event) => setSelectedYear(event.target.value)}
+    >
+      <option value="all">T?t c?</option>
+      {years.map((year) => (
+        <option key={year} value={year.toString()}>
+          {year}
+        </option>
+      ))}
+    </select>
+
+    {/* mui tên dropdown gi? d? d?p hon */}
+    <span className="shrink-0 text-white/50">?</span>
+  </div>
+
+  {/* Qu?c gia */}
+  <div className="flex w-full items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 sm:w-auto">
+    <span className="shrink-0">QG:</span>
+
+    <select
+      className="filter-select min-w-0 flex-1 bg-transparent text-xs text-white/80 sm:w-40"
+      value={selectedCountry}
+      onChange={(event) => setSelectedCountry(event.target.value)}
+    >
+      <option value="all">T?t c?</option>
+      {countries.map((country) => (
+        <option key={country} value={country}>
+          {country}
+        </option>
+      ))}
+    </select>
+
+    <span className="shrink-0 text-white/50">?</span>
+  </div>
+
+  {/* Status */}
+  {statusOptions.map((status) => (
+    <button
+      key={status.value}
+      onClick={() => setSelectedStatus(status.value)}
+      className={`rounded-full border px-3 py-2 ${
+        selectedStatus === status.value
+          ? "border-[var(--accent)] bg-[rgba(239,43,79,0.16)] text-white"
+          : "border-white/10 bg-white/5 text-white/70"
+      }`}
+    >
+      {status.label}
+    </button>
+  ))}
+</div>
+
 
         {error ? <p className="text-sm text-red-300">{error}</p> : null}
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {loading ? (
-            <div className="col-span-full text-sm text-white/60">Đang tải dữ liệu...</div>
+            <div className="col-span-full text-sm text-white/60">Ðang t?i d? li?u...</div>
           ) : movies.length === 0 ? (
-            <div className="col-span-full text-sm text-white/60">Chưa có phim nào.</div>
+            <div className="col-span-full text-sm text-white/60">chua có phim nào.</div>
           ) : (
             movies.map((movie) => {
               const subtitleParts = [] as string[];
@@ -283,7 +296,7 @@ function MoviesPageContent() {
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
           <button
             className="h-9 w-9 rounded-xl border border-white/10 bg-white/5 text-white/70 disabled:opacity-50"
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
@@ -327,7 +340,7 @@ function MoviesPageContent() {
 
         <div className="text-center text-sm text-white/60">
           <Link href="/rankings" className="underline decoration-white/30 underline-offset-4">
-            Xem bảng xếp hạng
+            Xem b?ng x?p h?ng
           </Link>
         </div>
       </main>
@@ -343,7 +356,7 @@ export default function MoviesPage() {
         <div className="min-h-screen">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-10 text-sm text-white/60">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
-            Dang tai danh sach phim...
+           Ðang t?i danh sách phim...
           </div>
         </div>
       }
@@ -352,3 +365,5 @@ export default function MoviesPage() {
     </Suspense>
   );
 }
+
+

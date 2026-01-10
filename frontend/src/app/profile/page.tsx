@@ -128,9 +128,9 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-10 px-6 pb-20 pt-10">
-        <section className="rounded-3xl border border-white/10 bg-[var(--panel)] p-6">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
+        <section className="rounded-3xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:p-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               {user?.avatar_url ? (
                 <img
@@ -143,14 +143,14 @@ export default function ProfilePage() {
               )}
               <div>
                 <h2 className="font-display text-xl font-semibold">
-                  {loading ? "Dang tai..." : displayName}
+                  {loading ? "Đang tải..." : displayName}
                 </h2>
                 <p className="text-xs text-white/60">
-                  {loading ? "" : `${roleLabel} - Tham gia tu ${joinYear}`}
+                  {loading ? "" : `${roleLabel} - Tham gia từ ${joinYear}`}
                 </p>
                 <p className="mt-2 text-xs text-white/50">
                   {user?.bio ||
-                    "tiêu sử cá nhân chưa được cập nhật."}
+                    "tiểu sử cá nhân chưa được cập nhật."}
                 </p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function ProfilePage() {
           ) : null}
         </section>
 
-        <section className="grid gap-4 md:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statItems.map((stat) => (
             <div
               key={stat.label}
@@ -207,7 +207,7 @@ export default function ProfilePage() {
             </Link>
           }
         />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 sm:p-6 sm:grid-cols-3 lg:grid-cols-4">
           {favorites.length === 0 ? (
             <div className="col-span-full flex h-full min-h-[280px] items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/5 text-sm text-white/50">
               Chưa có phim nào trong danh sách.
@@ -229,11 +229,11 @@ export default function ProfilePage() {
           title="Lịch sử xem"
           action={
             <Link href="/movies" className="text-xs text-[var(--accent-2)]">
-              Xem toàn bộ 
+              Xem toàn bộ
             </Link>
           }
         />
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-2 sm:p-6 sm:grid-cols-3 lg:grid-cols-3">
           {history.length === 0 ? (
             <div className="col-span-full flex h-full min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/5 text-sm text-white/50">
               Chưa có lịch sử xem nào.
@@ -245,10 +245,10 @@ export default function ProfilePage() {
                 title={item.title}
                 subtitle={
                   item.episode_number
-                    ? `Tap ${item.episode_number}`
+                    ? `Tập ${item.episode_number}`
                     : item.release_year
                     ? `${item.release_year}`
-                    : "Chua ro"
+                    : "Chưa Rõ"
                 }
                 cover={item.poster_url || undefined}
                 href={`/movies/${item.slug}`}

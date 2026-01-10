@@ -198,8 +198,8 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-14 px-6 pb-20 pt-10">
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[var(--panel)] p-8">
+      <main className="mx-auto max-w-6xl space-y-14 px-4 pb-20 pt-10 sm:px-6">
+        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[var(--panel)] p-5 sm:p-8">
           <div className="absolute inset-0">
             <div
               className="absolute inset-0 bg-cover bg-center opacity-70"
@@ -258,7 +258,7 @@ export default async function Home() {
                 {scheduleTimes.length === 0 ? (
                   <p className="mt-3 text-xs text-white/50">Chưa có lịch chiếu.</p>
                 ) : (
-                  <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
                     {scheduleTimes.map((time) => (
                       <span
                         key={time}
@@ -312,7 +312,7 @@ export default async function Home() {
           {latestMovies.length === 0 ? (
             <p className="text-sm text-white/60">Chưa có dữ liệu phim.</p>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3">
               {latestMovies.map((movie) => (
                 <MovieCard
                   key={movie.id}
@@ -360,7 +360,7 @@ export default async function Home() {
           </div>
           <div className="space-y-6">
             <SectionHeading title="Tập mới cập nhật" />
-            <div className="grid gap-4">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
               {latestEpisodes.length === 0 ? (
                 <p className="text-sm text-white/60">Chưa có tập mới.</p>
               ) : (
@@ -383,3 +383,4 @@ export default async function Home() {
     </div>
   );
 }
+
