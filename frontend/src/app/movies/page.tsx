@@ -39,14 +39,14 @@ type SortMode = "latest" | "views" | "rating";
 type StatusFilter = "all" | "ongoing" | "completed";
 
 const sortOptions: { label: string; value: SortMode }[] = [
-  { label: "M?i c?p nh?t", value: "latest" },
-  { label: "Xem nhi?u", value: "views" },
-  { label: "Ðánh giá cao", value: "rating" },
+  { label: "Mới cập nhật", value: "latest" },
+  { label: "Xem nhiều", value: "views" },
+  { label: "Đánh giá cao", value: "rating" },
 ];
 
 const statusOptions: { label: string; value: StatusFilter }[] = [
-  { label: "t?t c?", value: "all" },
-  { label: "Ðang chi?u", value: "ongoing" },
+  { label: "Tất cả", value: "all" },
+  { label: "Ðang chiếu", value: "ongoing" },
   { label: "Hoàn thành", value: "completed" },
 ];
 
@@ -107,7 +107,7 @@ function MoviesPageContent() {
           setCountries(filterData.countries || []);
         }
       } catch (err) {
-        setError("Không th? t?i b? l?c");
+        setError("Không thể tải bộ lọc");
       }
     };
 
@@ -133,7 +133,7 @@ function MoviesPageContent() {
           cache: "no-store",
         });
         if (!response.ok) {
-          setError("không t?i du?c d? li?u phim.");
+          setError("không tải được dữ liệu phim.");
           return;
         }
         const data = await response.json();
@@ -142,7 +142,7 @@ function MoviesPageContent() {
           data.pagination || { page: currentPage, total: 0, totalPages: 1 }
         );
       } catch (err) {
-        setError("không th? k?t n?i backend.");
+        setError("không thể kết nối backend.");
       } finally {
         setLoading(false);
       }
@@ -230,11 +230,11 @@ function MoviesPageContent() {
       ))}
     </select>
 
-    {/* mui tên dropdown gi? d? d?p hon */}
+    
     <span className="shrink-0 text-white/50">?</span>
   </div>
 
-  {/* Qu?c gia */}
+ 
   <div className="flex w-full items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 sm:w-auto">
     <span className="shrink-0">QG:</span>
 
@@ -243,7 +243,7 @@ function MoviesPageContent() {
       value={selectedCountry}
       onChange={(event) => setSelectedCountry(event.target.value)}
     >
-      <option value="all">T?t c?</option>
+      <option value="all">Tất cả</option>
       {countries.map((country) => (
         <option key={country} value={country}>
           {country}
@@ -275,9 +275,9 @@ function MoviesPageContent() {
 
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {loading ? (
-            <div className="col-span-full text-sm text-white/60">Ðang t?i d? li?u...</div>
+            <div className="col-span-full text-sm text-white/60">Đang tải dữ liệu...</div>
           ) : movies.length === 0 ? (
-            <div className="col-span-full text-sm text-white/60">chua có phim nào.</div>
+            <div className="col-span-full text-sm text-white/60">chưa có phim nào.</div>
           ) : (
             movies.map((movie) => {
               const subtitleParts = [] as string[];
@@ -340,7 +340,7 @@ function MoviesPageContent() {
 
         <div className="text-center text-sm text-white/60">
           <Link href="/rankings" className="underline decoration-white/30 underline-offset-4">
-            Xem b?ng x?p h?ng
+            Xem bảng xếp hạng
           </Link>
         </div>
       </main>
@@ -356,7 +356,7 @@ export default function MoviesPage() {
         <div className="min-h-screen">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-10 text-sm text-white/60">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
-           Ðang t?i danh sách phim...
+           Ðang tải danh sách phim...
           </div>
         </div>
       }
