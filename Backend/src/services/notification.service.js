@@ -1,24 +1,33 @@
 ﻿const pool = require("../config/db");
 
 const buildAudienceClause = () =>
-  `(n.audience = 'all' OR (n.audience = 'role' AND n.target_role = ?) OR (n.audience = 'user' AND n.target_user_id = ?))`;
+  `(
+    (
+      (n.audience = 'all' OR (n.audience = 'role' AND n.target_role = ?))
+      AND n.created_at >= u.created_at
+    )
+    OR
+    (n.audience = 'user' AND n.target_user_id = ?)
+  )`;
 
 const createNotification = async ({
   title,
   message,
   audience,
+  type,
   targetRole,
   targetUserId,
   status,
   createdBy,
 }) => {
   const [result] = await pool.query(
-    `INSERT INTO notifications (title, message, audience, target_role, target_user_id, status, created_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO notifications (title, message, audience, type, target_role, target_user_id, status, created_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       title,
       message,
       audience,
+      type || "normal",
       targetRole || null,
       targetUserId || null,
       status || "sent",
@@ -127,8 +136,9 @@ const listUserNotifications = async ({
       n.created_at,
       un.read_at
      FROM notifications n
+     JOIN users u ON u.id = ?
      LEFT JOIN user_notifications un
-       ON un.notification_id = n.id AND un.user_id = ?
+       ON un.notification_id = n.id AND un.user_id = u.id
      WHERE n.status = 'sent' AND ${buildAudienceClause()}
      ORDER BY n.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -138,8 +148,9 @@ const listUserNotifications = async ({
   const [countRows] = await pool.query(
     `SELECT COUNT(*) AS total
      FROM notifications n
+     JOIN users u ON u.id = ?
      WHERE n.status = 'sent' AND ${buildAudienceClause()}`,
-    [role, userId]
+    [userId, role, userId]
   );
 
   const total = countRows[0]?.total || 0;
@@ -159,8 +170,9 @@ const getUnreadCount = async ({ userId, role }) => {
   const [rows] = await pool.query(
     `SELECT COUNT(*) AS total
      FROM notifications n
+     JOIN users u ON u.id = ?
      LEFT JOIN user_notifications un
-       ON un.notification_id = n.id AND un.user_id = ?
+       ON un.notification_id = n.id AND un.user_id = u.id
      WHERE n.status = 'sent'
        AND ${buildAudienceClause()}
        AND un.read_at IS NULL`,
@@ -174,9 +186,10 @@ const canAccessNotification = async ({ userId, role, notificationId }) => {
   const [rows] = await pool.query(
     `SELECT n.id
      FROM notifications n
+     JOIN users u ON u.id = ?
      WHERE n.id = ? AND n.status = 'sent' AND ${buildAudienceClause()}
      LIMIT 1`,
-    [notificationId, role, userId]
+    [userId, notificationId, role, userId]
   );
 
   return Boolean(rows[0]);
@@ -196,9 +209,10 @@ const markAllRead = async ({ userId, role }) => {
     `INSERT INTO user_notifications (user_id, notification_id, read_at)
      SELECT ?, n.id, NOW()
      FROM notifications n
+     JOIN users u ON u.id = ?
      WHERE n.status = 'sent' AND ${buildAudienceClause()}
      ON DUPLICATE KEY UPDATE read_at = VALUES(read_at)`,
-    [userId, role, userId]
+    [userId, userId, role, userId]
   );
 };
 
@@ -222,11 +236,12 @@ const notifyEpisodeRelease = async (movieId, episodeTitle, episodeNumber) => {
 
   // Insert notification for all subscribers and favoriters
   const [result] = await pool.query(
-    `INSERT INTO notifications (title, message, audience, target_user_id, status, created_at)
+    `INSERT INTO notifications (title, message, audience, type, target_user_id, status, created_at)
      SELECT DISTINCT
        ?,
        ?,
        'user',
+       'normal',
        u.id,
        'sent',
        NOW()
@@ -243,6 +258,23 @@ const notifyEpisodeRelease = async (movieId, episodeTitle, episodeNumber) => {
   );
 };
 
+const getLatestPopup = async ({ userId, role }) => {
+  // Logic: Get the latest 'sent' popup that matches the user's audience criteria
+  // And was created AFTER the user joined (handled by buildAudienceClause)
+  const [rows] = await pool.query(
+    `SELECT n.id, n.title, n.message, n.created_at
+     FROM notifications n
+     JOIN users u ON u.id = ?
+     WHERE n.type = 'popup'
+       AND n.status = 'sent'
+       AND ${buildAudienceClause()}
+     ORDER BY n.created_at DESC
+     LIMIT 1`,
+    [userId, role, userId]
+  );
+  return rows[0];
+};
+
 module.exports = {
   createNotification,
   listNotifications,
@@ -254,4 +286,5 @@ module.exports = {
   markAllRead,
   deleteNotification,
   notifyEpisodeRelease,
+  getLatestPopup,
 };

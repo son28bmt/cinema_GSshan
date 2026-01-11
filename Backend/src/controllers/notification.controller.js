@@ -24,14 +24,14 @@ const listNotifications = async (req, res, next) => {
       limit,
       page,
       status,
-      q: q || null
+      q: q || null,
     });
     const stats = await notificationService.getNotificationStats();
 
     return res.status(200).json({
       notifications: result.rows,
       pagination: result.pagination,
-      stats
+      stats,
     });
   } catch (err) {
     return next(err);
@@ -51,11 +51,14 @@ const createNotification = async (req, res, next) => {
       targetRole,
       targetUserId,
       targetEmail,
-      status
+      type,
+      status,
     } = req.body;
 
     if (!title || !message) {
-      return res.status(400).json({ message: "Title and message are required" });
+      return res
+        .status(400)
+        .json({ message: "Title and message are required" });
     }
 
     if (!["all", "role", "user"].includes(audience)) {
@@ -97,10 +100,11 @@ const createNotification = async (req, res, next) => {
       title: title.trim(),
       message: message.trim(),
       audience,
+      type: type || "normal",
       targetRole: resolvedRole,
       targetUserId: resolvedUserId,
       status: normalizedStatus,
-      createdBy: req.user.id
+      createdBy: req.user.id,
     });
 
     return res.status(201).json({ notification: created });
@@ -140,12 +144,12 @@ const listInbox = async (req, res, next) => {
       userId: req.user.id,
       role: req.user.role,
       limit,
-      page
+      page,
     });
 
     return res.status(200).json({
       notifications: result.rows,
-      pagination: result.pagination
+      pagination: result.pagination,
     });
   } catch (err) {
     return next(err);
@@ -156,7 +160,7 @@ const getUnreadCount = async (req, res, next) => {
   try {
     const total = await notificationService.getUnreadCount({
       userId: req.user.id,
-      role: req.user.role
+      role: req.user.role,
     });
 
     return res.status(200).json({ total });
@@ -175,7 +179,7 @@ const markRead = async (req, res, next) => {
     const canAccess = await notificationService.canAccessNotification({
       userId: req.user.id,
       role: req.user.role,
-      notificationId: id
+      notificationId: id,
     });
 
     if (!canAccess) {
@@ -184,7 +188,7 @@ const markRead = async (req, res, next) => {
 
     await notificationService.markRead({
       userId: req.user.id,
-      notificationId: id
+      notificationId: id,
     });
 
     return res.status(200).json({ success: true });
@@ -197,10 +201,22 @@ const markAllRead = async (req, res, next) => {
   try {
     await notificationService.markAllRead({
       userId: req.user.id,
-      role: req.user.role
+      role: req.user.role,
     });
 
     return res.status(200).json({ success: true });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getPopup = async (req, res, next) => {
+  try {
+    const popup = await notificationService.getLatestPopup({
+      userId: req.user.id,
+      role: req.user.role,
+    });
+    return res.status(200).json({ popup });
   } catch (err) {
     return next(err);
   }
@@ -213,5 +229,6 @@ module.exports = {
   listInbox,
   getUnreadCount,
   markRead,
-  markAllRead
+  markAllRead,
+  getPopup,
 };

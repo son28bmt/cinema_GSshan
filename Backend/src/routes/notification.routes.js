@@ -7,12 +7,14 @@ const {
   listInbox,
   getUnreadCount,
   markRead,
-  markAllRead
+  markAllRead,
+  getPopup,
 } = require("../controllers/notification.controller");
 
 const router = express.Router();
 
 router.get("/inbox", requireAuth, listInbox);
+router.get("/popup", requireAuth, getPopup); // Added route
 router.get("/unread-count", requireAuth, getUnreadCount);
 router.post("/mark-all-read", requireAuth, markAllRead);
 router.post("/:id/read", requireAuth, markRead);
