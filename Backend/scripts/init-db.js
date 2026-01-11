@@ -70,6 +70,8 @@ const statements = [
     thumbnail_url MEDIUMTEXT DEFAULT NULL,
     status ENUM('published', 'draft') NOT NULL DEFAULT 'draft',
     views BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    is_premiere TINYINT(1) NOT NULL DEFAULT 0,
+    live_start_at DATETIME DEFAULT NULL,
     released_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -181,6 +183,7 @@ const statements = [
     PRIMARY KEY (id),
     KEY idx_watch_history_user (user_id),
     KEY idx_watch_history_movie (movie_id),
+    UNIQUE KEY uniq_watch_history_user_episode (user_id, episode_id),
     CONSTRAINT fk_watch_history_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_watch_history_movie FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
     CONSTRAINT fk_watch_history_episode FOREIGN KEY (episode_id) REFERENCES episodes(id) ON DELETE SET NULL

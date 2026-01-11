@@ -20,7 +20,7 @@ const listMovies = async (req, res, next) => {
       status: status === "all" ? null : status,
       country: country === "all" ? null : country,
       year: Number.isNaN(year) ? null : year,
-      q: q || null
+      q: q || null,
     });
 
     const normalized = movies.map((movie) => ({
@@ -28,17 +28,20 @@ const listMovies = async (req, res, next) => {
       rating: Number(movie.rating || 0),
       rating_count: Number(movie.rating_count || 0),
       views: Number(movie.views || 0),
-      favorite_count: Number(movie.favorite_count || 0)
+      favorite_count: Number(movie.favorite_count || 0),
     }));
 
-    const totalPages = Math.max(1, Math.ceil(total / (Number.isNaN(limit) ? 6 : limit)));
+    const totalPages = Math.max(
+      1,
+      Math.ceil(total / (Number.isNaN(limit) ? 6 : limit))
+    );
     return res.status(200).json({
       movies: normalized,
       pagination: {
         page: Number.isNaN(page) ? 1 : page,
         total,
-        totalPages
-      }
+        totalPages,
+      },
     });
   } catch (err) {
     return next(err);
@@ -54,7 +57,7 @@ const listTopRatedMovies = async (req, res, next) => {
     const normalized = movies.map((movie) => ({
       ...movie,
       rating: Number(movie.rating || 0),
-      rating_count: Number(movie.rating_count || 0)
+      rating_count: Number(movie.rating_count || 0),
     }));
     return res.status(200).json({ movies: normalized });
   } catch (err) {
@@ -66,6 +69,22 @@ const getMovieBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
     const movie = await movieService.getMovieBySlug(slug);
+    if (!movie) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+    return res.status(200).json({ movie });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getMovieById = async (req, res, next) => {
+  try {
+    const movieId = Number.parseInt(req.params.id, 10);
+    if (!movieId) {
+      return res.status(400).json({ message: "movie id is required" });
+    }
+    const movie = await movieService.getMovieById(movieId);
     if (!movie) {
       return res.status(404).json({ message: "Movie not found" });
     }
@@ -90,7 +109,7 @@ const createMovie = async (req, res, next) => {
       posterUrl,
       genreIds,
       studio,
-      totalEpisodes
+      totalEpisodes,
     } = req.body;
 
     if (!title) {
@@ -122,10 +141,94 @@ const createMovie = async (req, res, next) => {
       studio,
       totalEpisodes: Number.isFinite(Number(totalEpisodes))
         ? Number.parseInt(totalEpisodes, 10)
-        : undefined
+        : undefined,
     });
 
     return res.status(201).json({ id: movieId });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const updateMovie = async (req, res, next) => {
+  try {
+    const movieId = Number.parseInt(req.params.id, 10);
+    if (!movieId) {
+      return res.status(400).json({ message: "Movie ID is required" });
+    }
+
+    const {
+      title,
+      originalTitle,
+      slug,
+      description,
+      status,
+      country,
+      releaseYear,
+      trailerUrl,
+      backdropUrl,
+      posterUrl,
+      genreIds,
+      studio,
+      totalEpisodes,
+    } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ message: "Title is required" });
+    }
+
+    const finalSlug = slugify(slug || title);
+    if (!finalSlug) {
+      return res.status(400).json({ message: "Slug is invalid" });
+    }
+
+    // Check slug conflict
+    const existing = await movieService.findMovieBySlug(finalSlug);
+    if (existing && existing.id !== movieId) {
+      return res.status(409).json({ message: "Slug already exists" });
+    }
+
+    const updated = await movieService.updateMovie(movieId, {
+      title,
+      originalTitle,
+      slug: finalSlug,
+      description,
+      status: status || "ongoing",
+      country,
+      releaseYear,
+      trailerUrl,
+      backdropUrl,
+      posterUrl,
+      genreIds,
+      studio,
+      totalEpisodes: Number.isFinite(Number(totalEpisodes))
+        ? Number.parseInt(totalEpisodes, 10)
+        : undefined,
+    });
+
+    if (!updated) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+
+    return res.status(200).json({ message: "Movie updated successfully" });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const deleteMovie = async (req, res, next) => {
+  try {
+    const movieId = Number.parseInt(req.params.id, 10);
+    if (!movieId) {
+      return res.status(400).json({ message: "Movie ID is required" });
+    }
+
+    const deleted = await movieService.deleteMovie(movieId);
+    if (!deleted) {
+      return res.status(404).json({ message: "Movie not found" });
+    }
+
+    return res.status(200).json({ message: "Movie deleted successfully" });
   } catch (err) {
     return next(err);
   }
@@ -144,6 +247,9 @@ module.exports = {
   listMovies,
   listTopRatedMovies,
   getMovieFilters,
+  getMovieById,
   getMovieBySlug,
-  createMovie
+  createMovie,
+  updateMovie,
+  deleteMovie,
 };

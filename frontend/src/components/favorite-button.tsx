@@ -76,13 +76,13 @@ export default function FavoriteButton({
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        setError(data.message || "Khong the cap nhat danh sach.");
+        setError(data.message || "Không thể cập nhật danh sách.");
         return;
       }
 
       setIsFavorite((prev) => !prev);
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
     }
@@ -101,7 +101,7 @@ export default function FavoriteButton({
           }`}
           aria-pressed={isFavorite}
           aria-label="Yêu thích"
-          title={isFavorite ? "đã thêm vào danh sách" : "Thêm vào danh sách"}
+          title={isFavorite ? "Đã thêm vào danh sách" : "Thêm vào danh sách"}
         >
           <svg
             className="h-4 w-4"

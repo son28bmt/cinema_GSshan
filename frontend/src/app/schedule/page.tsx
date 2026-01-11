@@ -19,6 +19,7 @@ type ApiEpisode = {
   thumbnail_url: string | null;
   created_at: string;
   released_at: string | null;
+  live_start_at?: string | null;
   status: string;
   movie_title: string;
   movie_slug: string;
@@ -37,21 +38,31 @@ const formatDateLabel = (value: Date) =>
 
 const formatTime = (value: string | null) => {
   if (!value) {
-    return "Đang cập nhật";
+    return "??ang c??-p nh??-t";
   }
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "??ang c??-p nh??-t";
+  }
   return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 };
 
 const getStatusLabel = (value: string | null) => {
   if (!value) {
-    return "Đang cập nhật";
+    return "??ang c??-p nh??-t";
   }
-  return new Date(value).getTime() <= Date.now() ? "Đang chiếu" : "Sắp chiếu";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "??ang c??-p nh??-t";
+  }
+  return date.getTime() <= Date.now() ? "Đang chiếu" : "Sắp chiếu";
 };
 
 const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
 
+
+const pickScheduleTime = (episode: ApiEpisode) =>
+  episode.live_start_at || episode.released_at || episode.created_at;
 export default function SchedulePage() {
   const today = useMemo(() => new Date(), []);
   const [baseDate, setBaseDate] = useState(today);
@@ -119,7 +130,7 @@ export default function SchedulePage() {
         const data = await response.json();
         setScheduleEpisodes(data.episodes || []);
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -297,12 +308,12 @@ export default function SchedulePage() {
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-right">
               <p className="text-xs text-white/50">
                 {featuredEpisode
-                  ? getStatusLabel(featuredEpisode.released_at || featuredEpisode.created_at)
+                  ? getStatusLabel(pickScheduleTime(featuredEpisode))
                   : "Đang cập nhật"}
               </p>
               <p className="mt-2 text-3xl font-semibold">
                 {featuredEpisode
-                  ? formatTime(featuredEpisode.released_at || featuredEpisode.created_at)
+                  ? formatTime(pickScheduleTime(featuredEpisode))
                   : "--:--"}
               </p>
             </div>
@@ -332,7 +343,7 @@ export default function SchedulePage() {
             </div>
           </div>
           <div className="space-y-6">
-            <SectionHeading title="Sắp chiếu tối nay" />
+            <SectionHeading title="Sắp chiếu" />
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
               {loading ? (
                 <p className="text-sm text-white/60">Đang tải dữ liệu...</p>
@@ -344,7 +355,7 @@ export default function SchedulePage() {
                     key={episode.id}
                     title={episode.movie_title}
                     subtitle={`Tập ${episode.episode_number}`}
-                    badge={formatTime(episode.released_at || episode.created_at)}
+                    badge={formatTime(pickScheduleTime(episode))}
                     cover={episode.movie_poster || episode.thumbnail_url || undefined}
                     href={`/watch/${episode.id}`}
                   />

@@ -1,12 +1,17 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+import FacebookLogin from "@greatsumini/react-facebook-login";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const GOOGLE_CLIENT_ID =
+  "83226741762-37g5fsedo0dfd2f1huc386lu7pabqegg.apps.googleusercontent.com";
+const FACEBOOK_APP_ID = "2316321778874360";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,12 +19,24 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const loginUser = async (token: string, user: any) => {
+    if (token) {
+      localStorage.setItem("cinema_token", token);
+    }
+
+    if (user?.role === "admin") {
+      router.push("/admin");
+    } else {
+      router.push("/");
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
     if (!email || !password) {
-      setError("Vui long nhap email va mat khau.");
+      setError("Vui lòng nhập email và mật khẩu.");
       return;
     }
 
@@ -36,22 +53,71 @@ export default function LoginPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(data.message || "Dang nhap that bai.");
+        setError(data.message || "Đăng nhập thất bại");
+        setLoading(false);
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem("cinema_token", data.token);
+      await loginUser(data.token, data.user);
+    } catch (err) {
+      setError("Không thể kết nối dữ liệu.");
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/auth/google`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token: tokenResponse.access_token }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          setError(data.message || "Đăng nhập Google thất bại");
+          setLoading(false);
+          return;
+        }
+
+        await loginUser(data.token, data.user);
+      } catch (err) {
+        setError("Không thể kết nối dữ liệu.");
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Đăng nhập Google thất bại");
+    },
+  });
+
+  const handleFacebookLogin = async (response: any) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/auth/facebook`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: response.accessToken }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.message || "Đăng nhập Facebook thất bại");
+        setLoading(false);
+        return;
       }
 
-      if (data.user?.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      await loginUser(data.token, data.user);
     } catch (err) {
-      setError("Khong the ket noi backend.");
-    } finally {
+      setError("Không thể kết nối dữ liệu.");
       setLoading(false);
     }
   };
@@ -68,11 +134,11 @@ export default function LoginPage() {
               CineStream
             </div>
             <h1 className="font-display text-4xl font-semibold">
-              The gioi dien anh trong tam tay ban.
+              Thế giới điện ảnh trong tầm tay bạn.
             </h1>
             <p className="max-w-md text-sm text-white/60">
-              Trai nghiem hang ngan bo phim bom tan, donghua doc quyen va chuong
-              trinh giai tri chat luong cao. Dang nhap de tiep tuc hanh trinh.
+              Trải nghiệm hàng ngàn bộ phim bom tấn, donghua độc quyền và chương
+              trình giải trí chất lượng cao. Đăng nhập để tiếp tục hành trình.
             </p>
             <div className="flex items-center gap-4 text-xs text-white/60">
               <div className="flex -space-x-2">
@@ -80,7 +146,7 @@ export default function LoginPage() {
                 <span className="h-8 w-8 rounded-full border border-white/10 bg-white/20" />
                 <span className="h-8 w-8 rounded-full border border-white/10 bg-white/30" />
               </div>
-              <span>+2tr nguoi dung tin tuong</span>
+              <span>+2tr Người dùng tin tưởng</span>
             </div>
           </div>
         </section>
@@ -88,19 +154,23 @@ export default function LoginPage() {
         <section className="flex items-center justify-center p-6 sm:p-8">
           <div className="w-full max-w-md space-y-6 rounded-3xl border border-white/10 bg-[var(--panel)] p-6 sm:p-8">
             <div>
-              <h2 className="font-display text-2xl font-semibold">Chao mung tro lai!</h2>
-              <p className="text-sm text-white/60">Vui long nhap thong tin dang nhap.</p>
+              <h2 className="font-display text-2xl font-semibold">
+                Chào mừng trở lại!
+              </h2>
+              <p className="text-sm text-white/60">
+                Vui lòng nhập thông tin đăng nhập.
+              </p>
             </div>
 
             <div className="flex gap-4 text-sm">
               <span className="flex-1 border-b-2 border-[var(--accent)] pb-2 text-center text-white">
-                Dang nhap
+                Đăng nhập
               </span>
               <Link
                 href="/register"
                 className="flex-1 pb-2 text-center text-white/50 transition hover:text-white"
               >
-                Dang ky
+                Đăng ký
               </Link>
             </div>
 
@@ -117,11 +187,11 @@ export default function LoginPage() {
                 />
               </label>
               <label className="space-y-2 text-sm text-white/70">
-                Mat khau
+                Mật khẩu
                 <div className="flex items-center rounded-2xl border border-white/10 bg-white/5 px-4">
                   <input
                     className="w-full bg-transparent py-3 text-sm text-white placeholder:text-white/40 focus:outline-none"
-                    placeholder="Nhap mat khau"
+                    placeholder="Nhập mật khẩu"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
@@ -132,13 +202,16 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
-                    {showPassword ? "An" : "Hien"}
+                    {showPassword ? "Ẩn" : "Hiện"}
                   </button>
                 </div>
               </label>
               <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-xs text-[var(--accent-2)]">
-                  Quen mat khau?
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[var(--accent-2)]"
+                >
+                  Quên mật khẩu?
                 </Link>
               </div>
 
@@ -153,34 +226,63 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
               >
-                {loading ? "Dang xu ly..." : "Dang nhap"}
+                {loading ? "Đang xử lý..." : "Đăng nhập"}
               </button>
             </form>
 
             <div className="flex items-center gap-3 text-xs text-white/50">
               <span className="h-px flex-1 bg-white/10" />
-              Hoac tiep tuc voi
+              Hoặc tiếp tục với
               <span className="h-px flex-1 bg-white/10" />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70">
+              <button
+                type="button"
+                onClick={() => handleGoogleLogin()}
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70 hover:bg-white/10 transition"
+              >
                 Google
               </button>
-              <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70">
-                Facebook
-              </button>
+
+              <FacebookLogin
+                appId={FACEBOOK_APP_ID}
+                onSuccess={handleFacebookLogin}
+                onFail={(error) => {
+                  setError("Đăng nhập Facebook thất bại");
+                }}
+                onProfileSuccess={(response) => {
+                  // Optional: use profile data directly if needed
+                }}
+                render={({ onClick }) => (
+                  <button
+                    type="button"
+                    onClick={onClick}
+                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70 hover:bg-white/10 transition"
+                  >
+                    Facebook
+                  </button>
+                )}
+              />
             </div>
 
             <p className="text-xs text-white/50">
-              Bang viec dang nhap, ban dong y voi
-              <span className="text-white/70"> Dieu khoan </span>
-              va
-              <span className="text-white/70"> Chinh sach bao mat</span>.
+              Bằng việc đăng nhập, bạn đồng ý với
+              <span className="text-white/70"> Điều khoản </span>
+              và
+              <span className="text-white/70"> Chính sách bảo mật</span>.
             </p>
           </div>
         </section>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <LoginForm />
+    </GoogleOAuthProvider>
   );
 }

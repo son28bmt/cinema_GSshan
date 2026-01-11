@@ -45,9 +45,30 @@ const createGenre = async ({ name, slug, description }) => {
   return rows[0];
 };
 
+const updateGenre = async (id, { name, slug, description }) => {
+  const [result] = await pool.query(
+    "UPDATE genres SET name = ?, slug = ?, description = ? WHERE id = ?",
+    [name, slug, description || null, id]
+  );
+  if (result.affectedRows === 0) return null;
+
+  const [rows] = await pool.query(
+    "SELECT id, name, slug, description, created_at, updated_at FROM genres WHERE id = ?",
+    [id]
+  );
+  return rows[0];
+};
+
+const deleteGenre = async (id) => {
+  const [result] = await pool.query("DELETE FROM genres WHERE id = ?", [id]);
+  return result.affectedRows > 0;
+};
+
 module.exports = {
   listGenres,
   listGenresWithCounts,
   findGenreBySlug,
-  createGenre
+  createGenre,
+  updateGenre,
+  deleteGenre,
 };

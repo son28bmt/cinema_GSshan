@@ -83,7 +83,7 @@ export default function AdminUsersPage() {
         setUsers(data.users || []);
         setStats(data.stats || { total: 0, active: 0, disabled: 0 });
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -171,7 +171,7 @@ export default function AdminUsersPage() {
       }
       handleCloseForm();
     } catch (err) {
-      setFormError("Không thể kết nối backend.");
+      setFormError("Không thể kết nối dữ liệu.");
     } finally {
       setSaving(false);
     }

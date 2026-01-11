@@ -37,14 +37,15 @@ type Comment = {
 type FilterMode = "all" | "movie" | "episode";
 
 const reportReasons = [
-  "Spam / Quang cao",
-  "Noi dung khong phu hop",
-  "Xuc pham / Tuc tieu",
-  "Gia mao",
-  "Khac",
+  "Spam / Quảng cáo",
+  "Nội dung không phù hợp",
+  "Xúc phạm / Tục tĩu",
+  "Giả mạo",
+  "Khác",
 ];
 
-const formatDateTime = (value: string) => new Date(value).toLocaleString("vi-VN");
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("vi-VN");
 
 export default function CommunityPage() {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -77,7 +78,9 @@ export default function CommunityPage() {
       const [commentRes, movieRes, topRes] = await Promise.all([
         fetch(`${API_URL}/api/comments?limit=30`, { cache: "no-store" }),
         fetch(`${API_URL}/api/movies?limit=50`, { cache: "no-store" }),
-        fetch(`${API_URL}/api/movies?sort=views&limit=5`, { cache: "no-store" }),
+        fetch(`${API_URL}/api/movies?sort=views&limit=5`, {
+          cache: "no-store",
+        }),
       ]);
 
       if (commentRes.ok) {
@@ -93,7 +96,7 @@ export default function CommunityPage() {
         setTopMovies(data.movies || []);
       }
     } catch (err) {
-      setError("Khong the ket noi backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
     }
@@ -105,7 +108,9 @@ export default function CommunityPage() {
 
   const filteredComments = useMemo(() => {
     if (filterMode === "movie") {
-      return comments.filter((comment) => comment.movie_id && !comment.episode_id);
+      return comments.filter(
+        (comment) => comment.movie_id && !comment.episode_id
+      );
     }
     if (filterMode === "episode") {
       return comments.filter((comment) => comment.episode_id);
@@ -137,15 +142,15 @@ export default function CommunityPage() {
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) {
-      setFeedback("Vui long nhap noi dung binh luan.");
+      setFeedback("Vui lòng nhập nội dung bình luận.");
       return;
     }
     if (!token) {
-      setFeedback("Ban can dang nhap de binh luan.");
+      setFeedback("Bạn cần đăng nhập để bình luận.");
       return;
     }
     if (!selectedMovieId) {
-      setFeedback("Vui long chon phim de binh luan.");
+      setFeedback("Vui lòng chọn phim để bình luận.");
       return;
     }
 
@@ -167,7 +172,7 @@ export default function CommunityPage() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback(data.message || "Khong the gui binh luan.");
+        setFeedback(data.message || "Không thể gửi bình luận.");
         return;
       }
 
@@ -176,7 +181,7 @@ export default function CommunityPage() {
         setCommentText("");
       }
     } catch (err) {
-      setFeedback("Khong the ket noi backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingComment(false);
     }
@@ -184,15 +189,15 @@ export default function CommunityPage() {
 
   const handleReply = async (parent: Comment) => {
     if (!replyText.trim()) {
-      setFeedback("Vui long Nhập nội dung trả lời.");
+      setFeedback("Vui lòng nhập nội dung trả lời.");
       return;
     }
     if (!token) {
-      setFeedback("Ban can dang nhap de tra loi.");
+      setFeedback("Bạn cần đăng nhập để trả lời.");
       return;
     }
     if (!parent.movie_id && !parent.episode_id) {
-      setFeedback("Khong tim thay thong tin phim de tra loi.");
+      setFeedback("Không tìm thấy thông tin phim để trả lời.");
       return;
     }
 
@@ -216,7 +221,7 @@ export default function CommunityPage() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback(data.message || "Khong the gui tra loi.");
+        setFeedback(data.message || "Không thể gửi trả lời.");
         return;
       }
 
@@ -226,7 +231,7 @@ export default function CommunityPage() {
         setReplyingToId(null);
       }
     } catch (err) {
-      setFeedback("Khong the ket noi backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingComment(false);
     }
@@ -234,11 +239,11 @@ export default function CommunityPage() {
 
   const handleReport = async (commentId: number) => {
     if (!reportReason) {
-      setFeedback("Vui long chon ly do bao cao.");
+      setFeedback("Vui lòng chọn lý do báo cáo.");
       return;
     }
     if (!token) {
-      setFeedback("Ban can dang nhap de bao cao.");
+      setFeedback("Bạn cần đăng nhập để báo cáo.");
       return;
     }
 
@@ -246,18 +251,21 @@ export default function CommunityPage() {
     setFeedback("");
 
     try {
-      const response = await fetch(`${API_URL}/api/comments/${commentId}/report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason: reportReason }),
-      });
+      const response = await fetch(
+        `${API_URL}/api/comments/${commentId}/report`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reason: reportReason }),
+        }
+      );
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback(data.message || "Khong the gui bao cao.");
+        setFeedback(data.message || "Không thể gửi báo cáo.");
         return;
       }
 
@@ -270,7 +278,7 @@ export default function CommunityPage() {
       setReportingId(null);
       setReportReason("");
     } catch (err) {
-      setFeedback("Khong the ket noi backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setReporting(false);
     }
@@ -287,18 +295,25 @@ export default function CommunityPage() {
         >
           <div className="flex flex-wrap items-start justify-between gap-3 text-xs text-white/50">
             <div>
-              <p className="text-sm font-semibold text-white">{comment.author_name}</p>
-              <p>{comment.author_email || "an danh"}</p>
+              <p className="text-sm font-semibold text-white">
+                {comment.author_name}
+              </p>
+              <p>{comment.author_email || "ẩn danh"}</p>
               {comment.movie_title ? (
                 <p className="text-[11px] text-white/50">
                   {comment.movie_slug ? (
-                    <Link className="underline" href={`/movies/${comment.movie_slug}`}>
+                    <Link
+                      className="underline"
+                      href={`/movies/${comment.movie_slug}`}
+                    >
                       {comment.movie_title}
                     </Link>
                   ) : (
                     comment.movie_title
                   )}
-                  {comment.episode_number ? ` - Tập ${comment.episode_number}` : ""}
+                  {comment.episode_number
+                    ? ` - Tập ${comment.episode_number}`
+                    : ""}
                 </p>
               ) : null}
             </div>
@@ -307,7 +322,7 @@ export default function CommunityPage() {
           <p className="mt-3 text-sm text-white/70">{comment.content}</p>
           {comment.status === "reported" ? (
             <span className="mt-3 inline-flex rounded-full bg-red-500/15 px-3 py-1 text-[11px] text-red-200">
-              Đã Báo cáo
+              Đã báo cáo
             </span>
           ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/60">
@@ -319,7 +334,7 @@ export default function CommunityPage() {
                 setReportingId(null);
               }}
             >
-              Trả Lời
+              Trả lời
             </button>
             <button
               className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/70"
@@ -333,7 +348,7 @@ export default function CommunityPage() {
             </button>
             {comment.report_reason ? (
               <span className="text-[11px] text-red-300">
-                Bao cao: {comment.report_reason}
+                Báo cáo: {comment.report_reason}
               </span>
             ) : null}
           </div>
@@ -354,14 +369,14 @@ export default function CommunityPage() {
                     setReplyText("");
                   }}
                 >
-                  Huy
+                  Hủy
                 </button>
                 <button
                   className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                   onClick={() => handleReply(comment)}
                   disabled={sendingComment}
                 >
-                  {sendingComment ? "Đang gửi" : "Gửi Trả lời"}
+                  {sendingComment ? "Đang gửi" : "Gửi trả lời"}
                 </button>
               </div>
             </div>
@@ -369,7 +384,7 @@ export default function CommunityPage() {
 
           {reportingId === comment.id ? (
             <div className="mt-4 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
-              <p className="text-xs text-white/60">Chon ly do bao cao</p>
+              <p className="text-xs text-white/60">Chọn lý do báo cáo</p>
               <div className="flex flex-wrap gap-2">
                 {reportReasons.map((reason) => (
                   <button
@@ -416,8 +431,8 @@ export default function CommunityPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
         <SectionHeading
-          title="Cong dong"
-          subtitle="Nơi kết nối và chia sẽ của cộng đồng yêu thích DONGHUA"
+          title="Cộng đồng"
+          subtitle="Nơi kết nối và chia sẻ của cộng đồng yêu thích DONGHUA"
         />
 
         {error ? <p className="text-sm text-red-300">{error}</p> : null}
@@ -426,11 +441,13 @@ export default function CommunityPage() {
           <div className="space-y-6">
             <div className="rounded-3xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <div className="flex flex-wrap gap-2">
-                {([
-                  { label: "tất cả", value: "all" },
-                  { label: "Phim", value: "movie" },
-                  { label: "Tập", value: "episode" },
-                ] as { label: string; value: FilterMode }[]).map((item) => (
+                {(
+                  [
+                    { label: "Tất cả", value: "all" },
+                    { label: "Phim", value: "movie" },
+                    { label: "Tập", value: "episode" },
+                  ] as { label: string; value: FilterMode }[]
+                ).map((item) => (
                   <button
                     key={item.value}
                     className={`rounded-full px-3 py-2 text-xs ${
@@ -451,7 +468,9 @@ export default function CommunityPage() {
                     className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/80"
                     value={selectedMovieId}
                     onChange={(event) =>
-                      setSelectedMovieId(event.target.value ? Number(event.target.value) : "")
+                      setSelectedMovieId(
+                        event.target.value ? Number(event.target.value) : ""
+                      )
                     }
                   >
                     <option value="">Chọn phim để thảo luận</option>
@@ -465,23 +484,27 @@ export default function CommunityPage() {
                     className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70"
                     onClick={loadData}
                   >
-                    làm mới trang
+                    Làm mới trang
                   </button>
                 </div>
                 <textarea
                   className="mt-4 min-h-[120px] w-full rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white placeholder:text-white/40 focus:outline-none"
-                  placeholder="Bạn đang nghĩ gì, chia sẽ với mọi người nhé"
+                  placeholder="Bạn đang nghĩ gì, chia sẻ với mọi người nhé"
                   value={commentText}
                   onChange={(event) => setCommentText(event.target.value)}
                 />
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
-                  {feedback ? <p className="text-xs text-red-300">{feedback}</p> : <span />}
+                  {feedback ? (
+                    <p className="text-xs text-red-300">{feedback}</p>
+                  ) : (
+                    <span />
+                  )}
                   <button
                     className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                     onClick={handleSubmitComment}
                     disabled={sendingComment}
                   >
-                    {sendingComment ? "Đang Gửi" : "Gửi bình luận"}
+                    {sendingComment ? "Đang gửi" : "Gửi bình luận"}
                   </button>
                 </div>
               </div>
@@ -503,7 +526,7 @@ export default function CommunityPage() {
 
           <aside className="space-y-6">
             <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
-              <h3 className="text-sm font-semibold">Chủ đề nối bật</h3>
+              <h3 className="text-sm font-semibold">Chủ đề nổi bật</h3>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {topMovies.length === 0 ? (
                   <p className="text-xs text-white/50">Chưa có dữ liệu.</p>
@@ -526,7 +549,8 @@ export default function CommunityPage() {
             <div className="rounded-2xl border border-white/10 bg-[var(--panel-2)] p-4 sm:p-6">
               <p className="text-sm font-semibold">Mẹo nhanh</p>
               <p className="mt-2 text-xs text-white/60">
-                Chọn phim ở trên để gửi bình luận. Mỗi bình luận có thể trả lời hoặc báo cáo khi cần.
+                Chọn phim ở trên để gửi bình luận. Mỗi bình luận có thể trả lời
+                hoặc báo cáo khi cần.
               </p>
             </div>
           </aside>

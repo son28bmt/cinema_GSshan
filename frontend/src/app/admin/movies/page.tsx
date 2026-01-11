@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -25,23 +28,86 @@ const statusStyles: Record<string, string> = {
   upcoming: "bg-yellow-500/20 text-yellow-200",
 };
 
-const getMovies = async () => {
-  try {
-    const response = await fetch(`${API_URL}/api/movies?limit=50`, {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      return [];
-    }
-    const data = await response.json();
-    return (data.movies || []) as ApiMovie[];
-  } catch (err) {
-    return [];
-  }
-};
+export default function AdminMoviesPage() {
+  const [movies, setMovies] = useState<ApiMovie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
-export default async function AdminMoviesPage() {
-  const movies = await getMovies();
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/movies?limit=100`, {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+        const data = await response.json();
+        setMovies((data.movies || []) as ApiMovie[]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  // Read search query from URL
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const searchParam = params.get("search");
+      if (searchParam) {
+        setSearchQuery(searchParam);
+      }
+    }
+  }, []);
+
+  const filteredMovies = useMemo(() => {
+    return movies.filter((movie) => {
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (movie.original_title &&
+          movie.original_title
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())) ||
+        (movie.genres &&
+          movie.genres.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesStatus =
+        statusFilter === "all" || movie.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [movies, searchQuery, statusFilter]);
+
+  const handleDelete = async (movieId: number) => {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn xóa phim này? Tất cả tập phim liên quan cũng sẽ bị xóa!"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/movies/id/${movieId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || "Không thể xóa phim.");
+        return;
+      }
+
+      setMovies((prev) => prev.filter((m) => m.id !== movieId));
+    } catch {
+      alert("Không thể xóa phim. Hãy thử lại.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -80,17 +146,20 @@ export default async function AdminMoviesPage() {
             <input
               className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
               placeholder="Tìm kiếm phim theo tên, đạo diễn..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs">
-            Thể loại: Tất cả
-          </button>
-          <button className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs">
-            Năm: 2023
-          </button>
-          <button className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs">
-            Trạng thái: Tất cả
-          </button>
+          <select
+            className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs text-white/70"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">Trạng thái: Tất cả</option>
+            <option value="ongoing">Đang tiến hành</option>
+            <option value="completed">Hoàn thành</option>
+            <option value="upcoming">Sắp chiếu</option>
+          </select>
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
@@ -104,12 +173,19 @@ export default async function AdminMoviesPage() {
             <span>Hành động</span>
           </div>
           <div className="divide-y divide-white/5">
-            {movies.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
+                Đang tải dữ liệu...
+              </div>
+            ) : filteredMovies.length === 0 ? (
               <div className="px-4 py-6 text-sm text-white/60">
-                Chưa có phim nào trong hệ thống.
+                {movies.length === 0
+                  ? "Chưa có phim nào trong hệ thống."
+                  : "Không tìm thấy phim nào."}
               </div>
             ) : (
-              movies.map((movie) => {
+              filteredMovies.map((movie) => {
                 const statusLabel = statusLabels[movie.status] || "Khác";
                 const statusStyle =
                   statusStyles[movie.status] || "bg-white/10 text-white/70";
@@ -146,10 +222,16 @@ export default async function AdminMoviesPage() {
                       {statusLabel}
                     </span>
                     <div className="flex items-center gap-2 text-xs">
-                      <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                      <Link
+                        href={`/admin/movies/new?movieId=${movie.id}`}
+                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
+                      >
                         Sửa
-                      </button>
-                      <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                      </Link>
+                      <button
+                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                        onClick={() => handleDelete(movie.id)}
+                      >
                         Xóa
                       </button>
                     </div>
@@ -161,24 +243,7 @@ export default async function AdminMoviesPage() {
         </div>
 
         <div className="mt-4 flex items-center justify-between text-xs text-white/50">
-          <span>Hiển thị 1 đến {Math.min(movies.length, 10)} trên {movies.length} kết quả</span>
-          <div className="flex items-center gap-2">
-            <button className="h-8 w-8 rounded-lg border border-white/10 bg-[#111b26]">
-              1
-            </button>
-            <button className="h-8 w-8 rounded-lg border border-white/10 bg-[#111b26]">
-              2
-            </button>
-            <button className="h-8 w-8 rounded-lg border border-white/10 bg-[#111b26]">
-              3
-            </button>
-            <button className="h-8 w-8 rounded-lg border border-white/10 bg-[#111b26]">
-              ...
-            </button>
-            <button className="h-8 w-8 rounded-lg border border-white/10 bg-[#111b26]">
-              12
-            </button>
-          </div>
+          <span>Hiển thị {filteredMovies.length} kết quả</span>
         </div>
       </div>
     </div>

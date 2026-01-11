@@ -78,7 +78,7 @@ export default function NotifyButton({
 
       setIsSubscribed((prev) => !prev);
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
     }

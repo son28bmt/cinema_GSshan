@@ -11,6 +11,8 @@ const listEpisodes = async (movieId) => {
       thumbnail_url,
       status,
       views,
+      is_premiere,
+      live_start_at,
       released_at,
       created_at,
       updated_at
@@ -33,6 +35,8 @@ const listLatestEpisodes = async (limit = 5) => {
       e.created_at,
       e.released_at,
       e.status,
+      e.is_premiere,
+      e.live_start_at,
       m.title AS movie_title,
       m.slug AS movie_slug,
       m.poster_url AS movie_poster,
@@ -63,6 +67,8 @@ const listScheduleEpisodes = async ({ date, limit = 4 }) => {
         e.created_at,
         e.released_at,
         e.status,
+        e.is_premiere,
+        e.live_start_at,
         m.title AS movie_title,
         m.slug AS movie_slug,
         m.poster_url AS movie_poster,
@@ -97,6 +103,8 @@ const getEpisodeById = async (episodeId) => {
       e.thumbnail_url,
       e.status,
       e.views,
+      e.is_premiere,
+      e.live_start_at,
       e.released_at,
       e.created_at,
       e.updated_at,
@@ -130,12 +138,14 @@ const createEpisode = async ({
   videoUrl,
   thumbnailUrl,
   status,
-  releasedAt
+  releasedAt,
+  isPremiere,
+  liveStartAt,
 }) => {
   const [result] = await pool.query(
     `INSERT INTO episodes
-      (movie_id, episode_number, title, description, video_url, thumbnail_url, status, released_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      (movie_id, episode_number, title, description, video_url, thumbnail_url, status, released_at, is_premiere, live_start_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       movieId,
       episodeNumber,
@@ -144,10 +154,66 @@ const createEpisode = async ({
       videoUrl || null,
       thumbnailUrl || null,
       status,
-      releasedAt || null
+      releasedAt || null,
+      isPremiere ? 1 : 0,
+      liveStartAt || null,
     ]
   );
   return result.insertId;
+};
+
+const updateEpisode = async (
+  episodeId,
+  {
+    movieId,
+    episodeNumber,
+    title,
+    description,
+    videoUrl,
+    thumbnailUrl,
+    status,
+    releasedAt,
+    isPremiere,
+    liveStartAt,
+  }
+) => {
+  const [result] = await pool.query(
+    `UPDATE episodes
+     SET
+       movie_id = ?,
+       episode_number = ?,
+       title = ?,
+       description = ?,
+       video_url = ?,
+       thumbnail_url = ?,
+       status = ?,
+       released_at = ?,
+       is_premiere = ?,
+       live_start_at = ?,
+       updated_at = NOW()
+     WHERE id = ?`,
+    [
+      movieId,
+      episodeNumber,
+      title || null,
+      description || null,
+      videoUrl || null,
+      thumbnailUrl || null,
+      status,
+      releasedAt || null,
+      isPremiere ? 1 : 0,
+      liveStartAt || null,
+      episodeId,
+    ]
+  );
+  return result.affectedRows > 0;
+};
+
+const deleteEpisode = async (episodeId) => {
+  const [result] = await pool.query(`DELETE FROM episodes WHERE id = ?`, [
+    episodeId,
+  ]);
+  return result.affectedRows > 0;
 };
 
 module.exports = {
@@ -155,5 +221,7 @@ module.exports = {
   listLatestEpisodes,
   listScheduleEpisodes,
   getEpisodeById,
-  createEpisode
+  createEpisode,
+  updateEpisode,
+  deleteEpisode,
 };

@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import HlsPlayer from "../../../components/hls-player";
 import EpisodeComments from "../../../components/episode-comments";
@@ -19,6 +19,8 @@ type EpisodeDetail = {
   thumbnail_url: string | null;
   status: string;
   views: number;
+  is_premiere?: number;
+  live_start_at?: string | null;
   movie_title: string;
   movie_slug: string;
   movie_poster: string | null;
@@ -43,9 +45,9 @@ type ServerItem = {
 };
 
 const statusLabels: Record<string, string> = {
-  ongoing: "Dang tien hanh",
-  completed: "Hoan thanh",
-  upcoming: "Sap chieu",
+  ongoing: "Đang tiến hành",
+  completed: "Hoàn thành",
+  upcoming: "Sắp chiếu",
 };
 
 const getEpisodeDetail = async (id: string): Promise<EpisodeDetail | null> => {
@@ -53,12 +55,10 @@ const getEpisodeDetail = async (id: string): Promise<EpisodeDetail | null> => {
     const response = await fetch(`${API_URL}/api/episodes/${id}`, {
       cache: "no-store",
     });
-    if (!response.ok) {
-      return null;
-    }
+    if (!response.ok) return null;
     const data = await response.json();
     return data.episode || null;
-  } catch (err) {
+  } catch {
     return null;
   }
 };
@@ -68,30 +68,24 @@ const getEpisodeList = async (movieId: number): Promise<EpisodeListItem[]> => {
     const response = await fetch(`${API_URL}/api/episodes?movieId=${movieId}`, {
       cache: "no-store",
     });
-    if (!response.ok) {
-      return [];
-    }
+    if (!response.ok) return [];
     const data = await response.json();
     return (data.episodes || []).map((item: EpisodeListItem) => ({
       id: item.id,
       episode_number: item.episode_number,
     }));
-  } catch (err) {
+  } catch {
     return [];
   }
 };
 
 const getServers = async (): Promise<ServerItem[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/servers`, {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      return [];
-    }
+    const response = await fetch(`${API_URL}/api/servers`, { cache: "no-store" });
+    if (!response.ok) return [];
     const data = await response.json();
     return data.servers || [];
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -102,29 +96,47 @@ export default async function WatchPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
   const detail = await getEpisodeDetail(id);
+  if (!detail) notFound();
 
-  if (!detail) {
-    notFound();
-  }
+  const startTime = detail.live_start_at
+    ? new Date(detail.live_start_at).getTime()
+    : null;
+  const isPremiere = Boolean(detail.is_premiere);
+  const isLocked = isPremiere && startTime !== null && Date.now() < startTime;
+  const startLabel = startTime
+    ? new Date(startTime).toLocaleString("vi-VN")
+    : null;
 
-  const episodes = await getEpisodeList(detail.movie_id);
-  const servers = await getServers();
-  const subtitleParts = [] as string[];
+  const [episodes, servers] = await Promise.all([
+    getEpisodeList(detail.movie_id),
+    getServers(),
+  ]);
+
+  const subtitleParts: string[] = [];
   if (detail.release_year) subtitleParts.push(detail.release_year.toString());
+  if (detail.country) subtitleParts.push(detail.country);
   if (detail.genres) subtitleParts.push(detail.genres);
   const subtitleText = subtitleParts.join(" | ");
+
+  const currentEpisodeLabel = detail.episode_number
+    ? `Tập ${detail.episode_number}`
+    : "Tập";
 
   return (
     <div className="min-h-screen">
       <SiteHeader />
       <WatchHistoryTracker movieId={detail.movie_id} episodeId={detail.id} />
+
       <main className="mx-auto max-w-6xl space-y-10 px-4 pb-20 pt-10 sm:px-6">
-        <section className="grid gap-4 sm:p-6 lg:grid-cols-[1.6fr_0.8fr]">
+        <section className="grid gap-4 sm:rounded-3xl sm:border sm:border-white/10 sm:bg-[rgba(255,255,255,0.02)] sm:p-6 lg:grid-cols-[1.6fr_0.8fr]">
+          {/* LEFT */}
           <div className="space-y-6">
-            <div className="relative aspect-video rounded-3xl border border-white/10 bg-[var(--panel)] overflow-hidden">
-              <div className="relative h-full w-full overflow-hidden rounded-[1.35rem] bg-black/40 " style={{ aspectRatio: "16 / 9" }}>
-                {detail.video_url ? (
+            {/* Player */}
+            <div className="relative aspect-video overflow-hidden rounded-3xl border border-white/10 bg-[var(--panel)]">
+              <div className="relative h-full w-full overflow-hidden rounded-[1.35rem] bg-black/40">
+                {detail.video_url && !isLocked ? (
                   <HlsPlayer
                     src={detail.video_url}
                     poster={detail.thumbnail_url || detail.movie_poster || undefined}
@@ -140,39 +152,63 @@ export default async function WatchPage({
                     }}
                   />
                 )}
+
                 {!detail.video_url ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-white/70">
-                    <span>Chưa có Link cho tập này</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-sm text-white/70">
+                    <span>Chưa có link cho tập này</span>
+                  </div>
+                ) : null}
+
+                {isLocked ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 px-4 text-center text-sm text-white/80">
+                    <span className="text-lg font-semibold text-white">
+                      Sắp chiếu
+                    </span>
+                    {startLabel ? <span>Lên sóng lúc {startLabel}</span> : null}
+                    <span className="text-xs text-white/60">
+                      Video sẽ tự mở khi đến giờ
+                    </span>
                   </div>
                 ) : null}
               </div>
             </div>
+
+            {/* Episode header + servers */}
             <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <SectionHeading
-                title={`${detail.movie_title} - Tập ${detail.episode_number}`}
+                title={`${detail.movie_title} - ${currentEpisodeLabel}`}
                 subtitle={
                   subtitleText
-                    ? `${subtitleText} | ${statusLabels[detail.movie_status] || detail.movie_status}`
+                    ? `${subtitleText} | ${
+                        statusLabels[detail.movie_status] || detail.movie_status
+                      }`
                     : statusLabels[detail.movie_status] || detail.movie_status
                 }
               />
-              <div className="mt-4 flex flex-wrap gap-3 text-xs">
+
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
                 {servers.length === 0 ? (
-                  <span className="text-xs text-white/60">chưa có server.</span>
+                  <span className="text-xs text-white/60">Chưa có server.</span>
                 ) : (
                   servers.map((server, index) => {
                     const isPrimary = index === 0 && server.status === "active";
                     const isDisabled = server.status === "disabled";
+                    const isMaintenance = server.status === "maintenance";
+
                     return (
                       <button
                         key={server.id}
                         disabled={isDisabled}
-                        className={`rounded-full px-4 py-2 ${
-                          isPrimary
-                            ? "bg-[var(--accent)] text-white"
-                            : "border border-white/10 bg-white/5 text-white/70"
-                        } ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
                         title={server.endpoint_url}
+                        className={`rounded-full px-4 py-2 ${
+                          isDisabled
+                            ? "cursor-not-allowed border border-white/10 bg-white/5 text-white/30"
+                            : isPrimary
+                              ? "border border-transparent bg-[var(--accent)] text-white"
+                              : isMaintenance
+                                ? "border border-white/10 bg-[rgba(255,255,255,0.06)] text-white/60"
+                                : "border border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                        }`}
                       >
                         {server.name}
                       </button>
@@ -183,35 +219,42 @@ export default async function WatchPage({
             </div>
           </div>
 
+          {/* RIGHT */}
           <aside className="space-y-6">
             <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <SectionHeading title="Danh sách tập" />
-              <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {episodes.length === 0 ? (
-                  <p className="col-span-full text-xs text-white/60">Chưa có tập nào.</p>
+                  <p className="col-span-full text-xs text-white/60">
+                    Chưa có tập nào.
+                  </p>
                 ) : (
-                  episodes.map((episode) => (
-                    <Link
-                      key={episode.id}
-                      href={`/watch/${episode.id}`}
-                      className={`flex h-9 items-center justify-center rounded-xl border text-xs ${
-                        episode.id === detail.id
-                          ? "border-transparent bg-[var(--accent)] text-white"
-                          : "border-white/10 bg-white/5 text-white/70"
-                      }`}
-                    >
-                      {episode.episode_number}
-                    </Link>
-                  ))
+                  episodes.map((episode) => {
+                    const isActive = episode.id === detail.id;
+                    return (
+                      <Link
+                        key={episode.id}
+                        href={`/watch/${episode.id}`}
+                        className={`flex h-9 items-center justify-center rounded-xl border text-xs ${
+                          isActive
+                            ? "border-transparent bg-[var(--accent)] text-white"
+                            : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                        }`}
+                      >
+                        {episode.episode_number}
+                      </Link>
+                    );
+                  })
                 )}
               </div>
             </div>
+
             <EpisodeComments episodeId={detail.id} movieId={detail.movie_id} />
           </aside>
         </section>
       </main>
+
       <SiteFooter />
     </div>
   );
 }
-

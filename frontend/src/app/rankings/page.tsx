@@ -79,7 +79,9 @@ export default function RankingsPage() {
       setError("");
       try {
         const [movieRes, genreRes, commentRes] = await Promise.all([
-          fetch(`${API_URL}/api/movies?sort=${mode}&limit=8`, { cache: "no-store" }),
+          fetch(`${API_URL}/api/movies?sort=${mode}&limit=8`, {
+            cache: "no-store",
+          }),
           fetch(`${API_URL}/api/genres?includeCounts=1`, { cache: "no-store" }),
           fetch(`${API_URL}/api/comments?limit=3`, { cache: "no-store" }),
         ]);
@@ -97,7 +99,7 @@ export default function RankingsPage() {
           setComments(commentData.comments || []);
         }
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -118,9 +120,12 @@ export default function RankingsPage() {
         return;
       }
       try {
-        const response = await fetch(`${API_URL}/api/episodes?movieId=${topMovie.id}`, {
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `${API_URL}/api/episodes?movieId=${topMovie.id}`,
+          {
+            cache: "no-store",
+          }
+        );
         if (!response.ok) {
           setTopWatchHref(`/movies/${topMovie.slug}`);
           return;
@@ -128,7 +133,9 @@ export default function RankingsPage() {
         const data = await response.json();
         const episodes = data.episodes || [];
         setTopWatchHref(
-          episodes.length > 0 ? `/watch/${episodes[0].id}` : `/movies/${topMovie.slug}`
+          episodes.length > 0
+            ? `/watch/${episodes[0].id}`
+            : `/movies/${topMovie.slug}`
         );
       } catch (err) {
         setTopWatchHref(`/movies/${topMovie.slug}`);
@@ -202,7 +209,10 @@ export default function RankingsPage() {
                   </p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     {(topMovie?.genres
-                      ? topMovie.genres.split(",").map((tag) => tag.trim()).filter(Boolean)
+                      ? topMovie.genres
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter(Boolean)
                       : ["Chưa phân loại"]
                     ).map((tag) => (
                       <Tag key={tag}>{tag}</Tag>
@@ -211,10 +221,17 @@ export default function RankingsPage() {
                       <Tag>{formatViews(topMovie?.views || 0)} views</Tag>
                     ) : null}
                     {mode === "rating" ? (
-                      <Tag>{topMovie?.rating_count ? topMovie.rating.toFixed(1) : "—"} rating</Tag>
+                      <Tag>
+                        {topMovie?.rating_count
+                          ? topMovie.rating.toFixed(1)
+                          : "—"}{" "}
+                        rating
+                      </Tag>
                     ) : null}
                     {mode === "favorites" ? (
-                      <Tag>{formatNumber(topMovie?.favorite_count || 0)} theo dõi</Tag>
+                      <Tag>
+                        {formatNumber(topMovie?.favorite_count || 0)} theo dõi
+                      </Tag>
                     ) : null}
                   </div>
                 </div>
@@ -247,7 +264,9 @@ export default function RankingsPage() {
                     className="rounded-2xl border border-white/10 bg-white/5 p-5"
                   >
                     <p className="text-xs text-white/50">#{index + 2}</p>
-                    <p className="mt-2 text-base font-semibold sm:text-lg">{movie.title}</p>
+                    <p className="mt-2 text-base font-semibold sm:text-lg">
+                      {movie.title}
+                    </p>
                     <p className="text-xs text-white/50">
                       {movie.genres || "Chưa phân loại"}
                     </p>
@@ -259,10 +278,10 @@ export default function RankingsPage() {
               )}
             </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
               <div className="space-y-3 sm:hidden">
                 {tableMovies.length === 0 ? (
-                  <p className="text-sm text-white/60">Chua co du lieu.</p>
+                  <p className="text-sm text-white/60">Chưa có dữ liệu.</p>
                 ) : (
                   tableMovies.map((movie, index) => (
                     <div
@@ -271,10 +290,16 @@ export default function RankingsPage() {
                     >
                       <div className="flex items-center justify-between text-xs text-white/50">
                         <span>#{index + 4}</span>
-                        <span>{movie.views ? formatViews(movie.views) : "--"} views</span>
+                        <span>
+                          {movie.views ? formatViews(movie.views) : "--"} views
+                        </span>
                       </div>
-                      <p className="mt-2 text-base font-semibold">{movie.title}</p>
-                      <p className="text-xs text-white/50">{movie.genres || "--"}</p>
+                      <p className="mt-2 text-base font-semibold">
+                        {movie.title}
+                      </p>
+                      <p className="text-xs text-white/50">
+                        {movie.genres || "--"}
+                      </p>
                       <p className="mt-2 text-xs text-yellow-400">
                         ⭐ {movie.rating_count ? movie.rating.toFixed(1) : "--"}
                       </p>
@@ -284,14 +309,14 @@ export default function RankingsPage() {
               </div>
               <div className="hidden sm:block overflow-x-auto">
                 <div className="min-w-[420px] grid grid-cols-[0.6fr_1.4fr_0.6fr_0.6fr] text-xs text-white/50">
-                  <span>Hang</span>
+                  <span>Hạng</span>
                   <span>Phim</span>
-                  <span>Danh gia</span>
-                  <span>Luot xem</span>
+                  <span>Đánh giá</span>
+                  <span>Lượt xem</span>
                 </div>
                 <div className="mt-4 space-y-4">
                   {tableMovies.length === 0 ? (
-                    <p className="text-sm text-white/60">Chua co du lieu.</p>
+                    <p className="text-sm text-white/60">Chưa có dữ liệu.</p>
                   ) : (
                     tableMovies.map((movie, index) => (
                       <div
@@ -301,7 +326,9 @@ export default function RankingsPage() {
                         <span className="text-white/60">{index + 4}</span>
                         <div>
                           <p className="font-semibold">{movie.title}</p>
-                          <p className="text-xs text-white/50">{movie.genres || "--"}</p>
+                          <p className="text-xs text-white/50">
+                            {movie.genres || "--"}
+                          </p>
                         </div>
                         <span className="text-yellow-400">
                           {movie.rating_count ? movie.rating.toFixed(1) : "--"}
@@ -329,9 +356,7 @@ export default function RankingsPage() {
                 {topGenres.length === 0 ? (
                   <p className="text-xs text-white/50">Chưa có thể loại.</p>
                 ) : (
-                  topGenres.map((tag) => (
-                    <Tag key={tag.id}>{tag.name}</Tag>
-                  ))
+                  topGenres.map((tag) => <Tag key={tag.id}>{tag.name}</Tag>)
                 )}
               </div>
             </div>
@@ -343,11 +368,17 @@ export default function RankingsPage() {
                   <p className="text-xs text-white/50">Chưa có bình luận.</p>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id} className="flex flex-wrap items-center justify-between gap-3">
+                    <div
+                      key={comment.id}
+                      className="flex flex-wrap items-center justify-between gap-3"
+                    >
                       <div>
                         <p className="text-sm">{comment.author_name}</p>
                         <p className="text-xs text-white/50">
-                          @{comment.author_name.toLowerCase().replace(/\s+/g, "")}
+                          @
+                          {comment.author_name
+                            .toLowerCase()
+                            .replace(/\s+/g, "")}
                         </p>
                       </div>
                       <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] text-white/60">
@@ -378,9 +409,3 @@ export default function RankingsPage() {
     </div>
   );
 }
-
-
-
-
-
-

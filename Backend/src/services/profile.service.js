@@ -89,9 +89,19 @@ const recordWatchHistory = async ({
   episodeId,
   watchSeconds = 0
 }) => {
+  if (episodeId) {
+    await pool.query(
+      "UPDATE episodes SET views = views + 1 WHERE id = ?",
+      [episodeId]
+    );
+  }
   const [result] = await pool.query(
     `INSERT INTO watch_history (user_id, movie_id, episode_id, watch_seconds)
-     VALUES (?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       movie_id = VALUES(movie_id),
+       watch_seconds = GREATEST(watch_seconds, VALUES(watch_seconds)),
+       watched_at = CURRENT_TIMESTAMP`,
     [userId, movieId, episodeId || null, watchSeconds || 0]
   );
   return result.insertId;

@@ -6,6 +6,7 @@ import SectionHeading from "../components/section-heading";
 import SiteFooter from "../components/site-footer";
 import SiteHeader from "../components/site-header";
 import Tag from "../components/tag";
+import UpcomingSection from "../components/upcoming-section";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -30,6 +31,7 @@ type ApiRankingMovie = {
   genres: string | null;
   rating: number;
   rating_count: number;
+  rating_average?: number;
 };
 
 type ApiEpisode = {
@@ -39,6 +41,7 @@ type ApiEpisode = {
   thumbnail_url: string | null;
   created_at: string;
   released_at: string | null;
+  live_start_at?: string | null;
   status: string;
   movie_title: string;
   movie_slug: string;
@@ -61,7 +64,7 @@ const getLatestMovies = async () => {
     }
     const data = await response.json();
     return (data.movies || []) as ApiMovie[];
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -76,7 +79,7 @@ const getTopRatedMovies = async () => {
     }
     const data = await response.json();
     return (data.movies || []) as ApiRankingMovie[];
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -91,7 +94,7 @@ const getMovie = async (slug: string): Promise<ApiMovie | null> => {
     }
     const data = await response.json();
     return data.movie || null;
-  } catch (err) {
+  } catch {
     return null;
   }
 };
@@ -106,14 +109,14 @@ const getEpisodes = async (movieId: number) => {
     }
     const data = await response.json();
     return data.episodes || [];
-  } catch (err) {
+  } catch {
     return [];
   }
 };
 
 const getLatestEpisodes = async () => {
   try {
-    const response = await fetch(`${API_URL}/api/episodes/latest?limit=5`, {
+    const response = await fetch(`${API_URL}/api/episodes/latest?limit=12`, {
       cache: "no-store",
     });
     if (!response.ok) {
@@ -121,7 +124,7 @@ const getLatestEpisodes = async () => {
     }
     const data = await response.json();
     return (data.episodes || []) as ApiEpisode[];
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -129,8 +132,9 @@ const getLatestEpisodes = async () => {
 const getScheduleEpisodes = async () => {
   try {
     const today = new Date().toISOString().slice(0, 10);
+    // Fetch nhiều hơn để hiển thị trong grid
     const response = await fetch(
-      `${API_URL}/api/episodes/schedule?date=${today}&limit=4`,
+      `${API_URL}/api/episodes/schedule?date=${today}&limit=24`,
       { cache: "no-store" }
     );
     if (!response.ok) {
@@ -138,7 +142,7 @@ const getScheduleEpisodes = async () => {
     }
     const data = await response.json();
     return (data.episodes || []) as ApiEpisode[];
-  } catch (err) {
+  } catch {
     return [];
   }
 };
@@ -148,16 +152,14 @@ const formatTime = (value: string | null) => {
     return "Đang cập nhật";
   }
   const date = new Date(value);
-  return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
-const getScheduleStatus = (value: string | null) => {
-  if (!value) {
-    return "Đang cập nhật";
-  }
-  const date = new Date(value);
-  return date.getTime() <= Date.now() ? "Đang chiếu" : "Sắp chiếu";
-};
+const pickScheduleTime = (episode: ApiEpisode) =>
+  episode.live_start_at || episode.released_at || episode.created_at;
 
 export default async function Home() {
   const [latestMovies, topRatedMovies, latestEpisodes, scheduleEpisodes] =
@@ -174,23 +176,28 @@ export default async function Home() {
   const featuredEpisodes = featured ? await getEpisodes(featured.id) : [];
 
   const heroTags = featured?.genres
-    ? featured.genres.split(",").map((tag) => tag.trim()).filter(Boolean)
+    ? featured.genres
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean)
     : [];
   const heroWatchHref = featuredEpisodes[0]
     ? `/watch/${featuredEpisodes[0].id}`
     : featured
-      ? `/movies/${featured.slug}`
-      : "#";
+    ? `/movies/${featured.slug}`
+    : "#";
 
   const scheduleTimes = scheduleEpisodes
-    .map((item) => formatTime(item.released_at || item.created_at))
+    .map((item) => formatTime(pickScheduleTime(item)))
     .slice(0, 4);
 
   const rankingList = topRatedMovies.map((movie, index) => ({
     rank: index + 1,
     title: movie.title,
-    subtitle: movie.genres ? movie.genres.split(",")[0]?.trim() : "Chưa phân loại",
-    rating: movie.rating,
+    subtitle: movie.genres
+      ? movie.genres.split(",")[0]?.trim()
+      : "Chưa phân loại",
+    rating: movie.rating_average || movie.rating || 0,
     ratingCount: movie.rating_count,
     href: `/movies/${movie.slug}`,
   }));
@@ -198,7 +205,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl space-y-14 px-4 pb-20 pt-10 sm:px-6">
+      <main className="mx-auto max-w-7xl space-y-16 px-4 pb-20 pt-10 sm:px-6">
         <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[var(--panel)] p-5 sm:p-8">
           <div className="absolute inset-0">
             <div
@@ -256,12 +263,14 @@ export default async function Home() {
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                 <p className="text-xs text-white/60">Lịch chiếu hôm nay</p>
                 {scheduleTimes.length === 0 ? (
-                  <p className="mt-3 text-xs text-white/50">Chưa có lịch chiếu.</p>
+                  <p className="mt-3 text-xs text-white/50">
+                    Chưa có lịch chiếu.
+                  </p>
                 ) : (
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-                    {scheduleTimes.map((time) => (
+                    {scheduleTimes.map((time, idx) => (
                       <span
-                        key={time}
+                        key={`${time}-${idx}`}
                         className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-white/70"
                       >
                         {time}
@@ -274,20 +283,25 @@ export default async function Home() {
                 <p className="text-xs text-white/60">Bảng xếp hạng</p>
                 <div className="mt-4 space-y-3 text-sm">
                   {rankingList.length === 0 ? (
-                    <p className="text-xs text-white/50">Chưa có bảng xếp hạng.</p>
+                    <p className="text-xs text-white/50">
+                      Chưa có bảng xếp hạng.
+                    </p>
                   ) : (
                     rankingList.map((item) => (
                       <Link
                         key={item.rank}
                         href={item.href}
-                        className="flex items-center justify-between"
+                        className="flex items-center justify-between group"
                       >
                         <div>
-                          <p className="font-semibold text-white">#{item.rank}</p>
-                          <p className="text-xs text-white/50">{item.title}</p>
+                          <p className="font-semibold text-white group-hover:text-[var(--accent)] transition-colors">
+                            {item.title}
+                          </p>
+                          <p className="text-xs text-white/50">#{item.rank}</p>
                         </div>
                         <span className="text-xs text-yellow-400">
-                          ⭐ {item.ratingCount > 0 ? item.rating.toFixed(1) : "—"}
+                          ⭐{" "}
+                          {item.ratingCount > 0 ? item.rating.toFixed(1) : "—"}
                         </span>
                       </Link>
                     ))
@@ -296,6 +310,32 @@ export default async function Home() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="grid gap-8 lg:grid-cols-2">
+          <div className="space-y-6">
+            <SectionHeading title="Mới cập nhật" />
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
+              {latestEpisodes.length === 0 ? (
+                <p className="text-sm text-white/60">Chưa có tập mới.</p>
+              ) : (
+                latestEpisodes.map((episode) => (
+                  <MovieCard
+                    key={episode.id}
+                    title={episode.movie_title}
+                    subtitle={episode.title || `Tập ${episode.episode_number}`}
+                    badge={`EP ${episode.episode_number}`}
+                    cover={
+                      episode.movie_poster || episode.thumbnail_url || undefined
+                    }
+                    href={`/watch/${episode.id}`}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          <UpcomingSection initialEpisodes={scheduleEpisodes} />
         </section>
 
         <section className="space-y-4">
@@ -307,17 +347,26 @@ export default async function Home() {
           <SectionHeading
             title="Phim đang hot"
             subtitle="Nội dung nổi bật trong tuần, cập nhật liên tục"
-            action={<Link href="/movies">Xem tất cả</Link>}
+            action={
+              <Link
+                href="/movies"
+                className="text-sm text-[var(--accent)] hover:underline"
+              >
+                Xem tất cả
+              </Link>
+            }
           />
           {latestMovies.length === 0 ? (
             <p className="text-sm text-white/60">Chưa có dữ liệu phim.</p>
           ) : (
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
               {latestMovies.map((movie) => (
                 <MovieCard
                   key={movie.id}
                   title={movie.title}
-                  subtitle={movie.release_year ? `${movie.release_year}` : "Chưa rõ"}
+                  subtitle={
+                    movie.release_year ? `${movie.release_year}` : "Chưa rõ"
+                  }
                   cover={movie.poster_url || undefined}
                   href={`/movies/${movie.slug}`}
                 />
@@ -325,62 +374,8 @@ export default async function Home() {
             </div>
           )}
         </section>
-
-        <section className="grid gap-6 lg:grid-cols-[2fr_1.2fr]">
-          <div className="space-y-6">
-            <SectionHeading
-              title="Lịch chiếu hôm nay"
-              subtitle="Những tập mới sẽ lên sóng trong 24h tới"
-            />
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-[var(--panel)] p-5">
-              {scheduleEpisodes.length === 0 ? (
-                <p className="text-sm text-white/60">Chưa có lịch chiếu.</p>
-              ) : (
-                scheduleEpisodes.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold">{item.movie_title}</p>
-                      <p className="text-xs text-white/50">
-                        Tập {item.episode_number}
-                      </p>
-                    </div>
-                    <div className="text-right text-xs text-white/60">
-                      <p>{formatTime(item.released_at || item.created_at)}</p>
-                      <p className="text-[10px] uppercase text-[var(--accent-2)]">
-                        {getScheduleStatus(item.released_at || item.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-          <div className="space-y-6">
-            <SectionHeading title="Tập mới cập nhật" />
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
-              {latestEpisodes.length === 0 ? (
-                <p className="text-sm text-white/60">Chưa có tập mới.</p>
-              ) : (
-                latestEpisodes.map((episode) => (
-                  <MovieCard
-                    key={episode.id}
-                    title={episode.movie_title}
-                    subtitle={episode.title || `Tập ${episode.episode_number}`}
-                    badge={`Tập ${episode.episode_number}`}
-                    cover={episode.movie_poster || episode.thumbnail_url || undefined}
-                    href={`/watch/${episode.id}`}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </section>
       </main>
       <SiteFooter />
     </div>
   );
 }
-

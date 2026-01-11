@@ -88,7 +88,7 @@ export default function ProfileSettingsPage() {
           setMarketingEmails(!!profileData.settings?.marketing_emails);
           setNewEmail(profileData.user?.email || "");
         } else {
-          setError(profileData.message || "Khong the tai du lieu.");
+          setError(profileData.message || "Không thể tải dữ liệu.");
         }
 
         const devicesData = await devicesRes.json().catch(() => ({}));
@@ -96,7 +96,7 @@ export default function ProfileSettingsPage() {
           setDevices(devicesData.devices || []);
         }
       } catch (err) {
-        setError("Khong the tai du lieu.");
+        setError("Không thể tải dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -112,7 +112,7 @@ export default function ProfileSettingsPage() {
     try {
       const token = localStorage.getItem("cinema_token");
       if (!token) {
-        setError("Ban can dang nhap lai.");
+        setError("Bạn cần đăng nhập lại.");
         return;
       }
 
@@ -130,12 +130,12 @@ export default function ProfileSettingsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.message || "Cap nhat that bai.");
+        setError(data.message || "Cập nhật thất bại.");
         return;
       }
       setUser(data.user || null);
     } catch (err) {
-      setError("Cap nhat that bai.");
+      setError("Cập nhật thất bại.");
     } finally {
       setSavingProfile(false);
     }
@@ -148,7 +148,7 @@ export default function ProfileSettingsPage() {
     try {
       const token = localStorage.getItem("cinema_token");
       if (!token) {
-        setError("Ban can dang nhap lai.");
+        setError("Bạn cần đăng nhập lại.");
         return;
       }
 
@@ -166,12 +166,12 @@ export default function ProfileSettingsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.message || "Cap nhat that bai.");
+        setError(data.message || "Cập nhật thất bại.");
         return;
       }
       setSettings(data.settings || null);
     } catch (err) {
-      setError("Cap nhat that bai.");
+      setError("Cập nhật thất bại.");
     } finally {
       setSavingSettings(false);
     }
@@ -179,7 +179,7 @@ export default function ProfileSettingsPage() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      setError("Mat khau moi khong khop.");
+      setError("Mật khẩu mới không khớp.");
       return;
     }
 
@@ -189,7 +189,7 @@ export default function ProfileSettingsPage() {
     try {
       const token = localStorage.getItem("cinema_token");
       if (!token) {
-        setError("Ban can dang nhap lai.");
+        setError("Bạn cần đăng nhập lại.");
         return;
       }
 
@@ -206,14 +206,14 @@ export default function ProfileSettingsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.message || "Cap nhat that bai.");
+        setError(data.message || "Cập nhật thất bại.");
         return;
       }
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setError("Cap nhat that bai.");
+      setError("Cập nhật thất bại.");
     } finally {
       setSavingPassword(false);
     }
@@ -226,7 +226,7 @@ export default function ProfileSettingsPage() {
     try {
       const token = localStorage.getItem("cinema_token");
       if (!token) {
-        setError("Ban can dang nhap lai.");
+        setError("Bạn cần đăng nhập lại.");
         return;
       }
 
@@ -243,14 +243,14 @@ export default function ProfileSettingsPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.message || "Cap nhat that bai.");
+        setError(data.message || "Cập nhật thất bại.");
         return;
       }
       setUser(data.user || null);
       setEmailEditOpen(false);
       setEmailPassword("");
     } catch (err) {
-      setError("Cap nhat that bai.");
+      setError("Cập nhật thất bại.");
     } finally {
       setSavingEmail(false);
     }
@@ -272,9 +272,11 @@ export default function ProfileSettingsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl space-y-8 px-4 pb-20 pt-10 sm:px-6">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Cai dat tai khoan</h1>
+          <h1 className="text-2xl font-semibold text-white">
+            Cài đặt tài khoản
+          </h1>
           <p className="text-sm text-white/60">
-            Quan ly thong tin ho so, bao mat va thiet bi dang nhap.
+            Quản lý thông tin hồ sơ, bảo mật và thiết bị đăng nhập.
           </p>
         </div>
 
@@ -323,7 +325,7 @@ export default function ProfileSettingsPage() {
                   <p className="text-xs text-white/50">Avatar</p>
                 </div>
                 <label className="space-y-2 text-xs text-white/60">
-                  Ho va ten
+                  Họ và tên
                   <input
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     value={fullName}
@@ -331,7 +333,7 @@ export default function ProfileSettingsPage() {
                   />
                 </label>
                 <label className="space-y-2 text-xs text-white/60">
-                  Ten hien thi
+                  Tên hiển thị
                   <input
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     value={displayName}
@@ -339,7 +341,7 @@ export default function ProfileSettingsPage() {
                   />
                 </label>
                 <label className="md:col-span-3 space-y-2 text-xs text-white/60">
-                  Gioi thieu ban than
+                  Giới thiệu bản thân
                   <textarea
                     rows={3}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
@@ -354,25 +356,25 @@ export default function ProfileSettingsPage() {
                   disabled={savingProfile || loading}
                   className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                 >
-                  {savingProfile ? "Dang luu..." : "Luu thay doi"}
+                  {savingProfile ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               </div>
             </section>
 
             <section className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6">
-              <h3 className="text-sm font-semibold">Bao mat tai khoan</h3>
+              <h3 className="text-sm font-semibold">Bảo mật tài khoản</h3>
               <div className="mt-4 space-y-4">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold">Email lien ket</p>
+                      <p className="text-sm font-semibold">Email liên kết</p>
                       <p className="text-xs text-white/60">{user?.email}</p>
                     </div>
                     <button
                       onClick={() => setEmailEditOpen((prev) => !prev)}
                       className="rounded-full border border-white/10 px-4 py-2 text-xs text-white/70"
                     >
-                      Thay doi email
+                      Thay đổi email
                     </button>
                   </div>
                   {emailEditOpen ? (
@@ -381,14 +383,16 @@ export default function ProfileSettingsPage() {
                         className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                         value={newEmail}
                         onChange={(event) => setNewEmail(event.target.value)}
-                        placeholder="Email moi"
+                        placeholder="Email mới"
                       />
                       <input
                         className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                         type="password"
                         value={emailPassword}
-                        onChange={(event) => setEmailPassword(event.target.value)}
-                        placeholder="Mat khau hien tai"
+                        onChange={(event) =>
+                          setEmailPassword(event.target.value)
+                        }
+                        placeholder="Mật khẩu hiện tại"
                       />
                       <div className="md:col-span-2 flex justify-end">
                         <button
@@ -396,7 +400,7 @@ export default function ProfileSettingsPage() {
                           disabled={savingEmail}
                           className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                         >
-                          {savingEmail ? "Dang luu..." : "Xac nhan"}
+                          {savingEmail ? "Đang lưu..." : "Xác nhận"}
                         </button>
                       </div>
                     </div>
@@ -409,21 +413,21 @@ export default function ProfileSettingsPage() {
                     type="password"
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
-                    placeholder="Mat khau hien tai"
+                    placeholder="Mật khẩu hiện tại"
                   />
                   <input
                     className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     type="password"
                     value={newPassword}
                     onChange={(event) => setNewPassword(event.target.value)}
-                    placeholder="Mat khau moi"
+                    placeholder="Mật khẩu mới"
                   />
                   <input
                     className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
                     type="password"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    placeholder="Nhap lai mat khau moi"
+                    placeholder="Nhập lại mật khẩu mới"
                   />
                 </div>
                 <div className="flex justify-start">
@@ -432,7 +436,7 @@ export default function ProfileSettingsPage() {
                     disabled={savingPassword}
                     className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70 disabled:opacity-60"
                   >
-                    {savingPassword ? "Dang cap nhat..." : "Cap nhat mat khau"}
+                    {savingPassword ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
                   </button>
                 </div>
               </div>
@@ -446,7 +450,9 @@ export default function ProfileSettingsPage() {
                   <input
                     type="checkbox"
                     checked={notifyNewMovies}
-                    onChange={(event) => setNotifyNewMovies(event.target.checked)}
+                    onChange={(event) =>
+                      setNotifyNewMovies(event.target.checked)
+                    }
                     className="h-5 w-10 accent-[var(--accent)]"
                   />
                 </label>
@@ -455,7 +461,9 @@ export default function ProfileSettingsPage() {
                   <input
                     type="checkbox"
                     checked={notifyNewEpisodes}
-                    onChange={(event) => setNotifyNewEpisodes(event.target.checked)}
+                    onChange={(event) =>
+                      setNotifyNewEpisodes(event.target.checked)
+                    }
                     className="h-5 w-10 accent-[var(--accent)]"
                   />
                 </label>
@@ -464,7 +472,9 @@ export default function ProfileSettingsPage() {
                   <input
                     type="checkbox"
                     checked={marketingEmails}
-                    onChange={(event) => setMarketingEmails(event.target.checked)}
+                    onChange={(event) =>
+                      setMarketingEmails(event.target.checked)
+                    }
                     className="h-5 w-10 accent-[var(--accent)]"
                   />
                 </label>
@@ -475,7 +485,7 @@ export default function ProfileSettingsPage() {
                   disabled={savingSettings}
                   className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                 >
-                  {savingSettings ? "Dang luu..." : "Luu thay doi"}
+                  {savingSettings ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               </div>
             </section>
@@ -496,9 +506,8 @@ export default function ProfileSettingsPage() {
                           {renderDeviceLabel(device)}
                         </p>
                         <p className="text-[11px] text-white/50">
-                          {device.ip_address || "Unknown IP"} · {new Date(
-                            device.last_seen_at
-                          ).toLocaleString()}
+                          {device.ip_address || "Unknown IP"} ·{" "}
+                          {new Date(device.last_seen_at).toLocaleString()}
                         </p>
                       </div>
                       <span className="text-[11px] text-white/40">Active</span>
@@ -511,7 +520,7 @@ export default function ProfileSettingsPage() {
                   onClick={handleLogoutAll}
                   className="rounded-full border border-red-500/40 bg-red-500/10 px-4 py-2 text-xs text-red-200"
                 >
-                  Đăng xuất Khỏi tất cả các thiết bị
+                  Đăng xuất khỏi tất cả các thiết bị
                 </button>
               </div>
             </section>
@@ -522,5 +531,3 @@ export default function ProfileSettingsPage() {
     </div>
   );
 }
-
-

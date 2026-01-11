@@ -10,7 +10,7 @@ const createNotification = async ({
   targetRole,
   targetUserId,
   status,
-  createdBy
+  createdBy,
 }) => {
   const [result] = await pool.query(
     `INSERT INTO notifications (title, message, audience, target_role, target_user_id, status, created_by)
@@ -22,7 +22,7 @@ const createNotification = async ({
       targetRole || null,
       targetUserId || null,
       status || "sent",
-      createdBy || null
+      createdBy || null,
     ]
   );
 
@@ -81,8 +81,8 @@ const listNotifications = async ({ limit = 20, page = 1, status, q }) => {
     pagination: {
       page,
       total,
-      totalPages
-    }
+      totalPages,
+    },
   };
 };
 
@@ -95,17 +95,24 @@ const getNotificationStats = async () => {
      FROM notifications`
   );
 
-  const [userRows] = await pool.query("SELECT COUNT(*) AS total_users FROM users");
+  const [userRows] = await pool.query(
+    "SELECT COUNT(*) AS total_users FROM users"
+  );
 
   return {
     total: rows[0]?.total || 0,
     sent: rows[0]?.sent || 0,
     draft: rows[0]?.draft || 0,
-    totalUsers: userRows[0]?.total_users || 0
+    totalUsers: userRows[0]?.total_users || 0,
   };
 };
 
-const listUserNotifications = async ({ userId, role, limit = 10, page = 1 }) => {
+const listUserNotifications = async ({
+  userId,
+  role,
+  limit = 10,
+  page = 1,
+}) => {
   const offset = (page - 1) * limit;
 
   const [rows] = await pool.query(
@@ -143,8 +150,8 @@ const listUserNotifications = async ({ userId, role, limit = 10, page = 1 }) => 
     pagination: {
       page,
       total,
-      totalPages
-    }
+      totalPages,
+    },
   };
 };
 
@@ -196,8 +203,44 @@ const markAllRead = async ({ userId, role }) => {
 };
 
 const deleteNotification = async (id) => {
-  const [result] = await pool.query("DELETE FROM notifications WHERE id = ?", [id]);
+  const [result] = await pool.query("DELETE FROM notifications WHERE id = ?", [
+    id,
+  ]);
   return result.affectedRows > 0;
+};
+
+const notifyEpisodeRelease = async (movieId, episodeTitle, episodeNumber) => {
+  const [movies] = await pool.query("SELECT title FROM movies WHERE id = ?", [
+    movieId,
+  ]);
+  const movieTitle = movies[0]?.title || "Phim";
+
+  const message = `Tập ${episodeNumber}${
+    episodeTitle ? `: ${episodeTitle}` : ""
+  } của phim ${movieTitle} vừa ra mắt!`;
+  const title = `Tập mới: ${movieTitle}`;
+
+  // Insert notification for all subscribers and favoriters
+  const [result] = await pool.query(
+    `INSERT INTO notifications (title, message, audience, target_user_id, status, created_at)
+     SELECT DISTINCT
+       ?,
+       ?,
+       'user',
+       u.id,
+       'sent',
+       NOW()
+     FROM users u
+     JOIN (
+       SELECT user_id FROM movie_subscriptions WHERE movie_id = ?
+       UNION
+       SELECT user_id FROM favorites WHERE movie_id = ?
+     ) AS recipients ON recipients.user_id = u.id`,
+    [title, message, movieId, movieId]
+  );
+  console.log(
+    `[Notification] Created ${result.affectedRows} notifications for MovieID=${movieId}`
+  );
 };
 
 module.exports = {
@@ -209,5 +252,6 @@ module.exports = {
   canAccessNotification,
   markRead,
   markAllRead,
-  deleteNotification
+  deleteNotification,
+  notifyEpisodeRelease,
 };

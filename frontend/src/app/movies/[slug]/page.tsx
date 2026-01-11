@@ -174,7 +174,7 @@ export default async function MovieDetailPage({
                       genreTags.map((tag) => <Tag key={tag}>{tag}</Tag>)
                     )}
                   </div>
-                  <div className="flex flex-col gap-2 sm:flex-wrap sm:items-center sm:gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 sm:w-full">
                     {watchHref ? (
                       <Link
                         href={watchHref}

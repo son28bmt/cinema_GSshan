@@ -39,12 +39,12 @@ type SendStatus = "sent" | "draft";
 
 const statusLabels: Record<SendStatus, string> = {
   sent: "Đã Gửi",
-  draft: "Nháp"
+  draft: "Nháp",
 };
 
 const statusClasses: Record<SendStatus, string> = {
   sent: "bg-green-500/15 text-green-400",
-  draft: "bg-yellow-500/15 text-yellow-300"
+  draft: "bg-yellow-500/15 text-yellow-300",
 };
 
 export default function AdminNotificationsPage() {
@@ -53,12 +53,12 @@ export default function AdminNotificationsPage() {
     total: 0,
     sent: 0,
     draft: 0,
-    totalUsers: 0
+    totalUsers: 0,
   });
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     total: 0,
-    totalPages: 1
+    totalPages: 1,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -105,10 +105,13 @@ export default function AdminNotificationsPage() {
         if (statusFilter !== "all") params.set("status", statusFilter);
         if (searchQuery) params.set("q", searchQuery);
 
-        const response = await fetch(`${API_URL}/api/notifications?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
+        const response = await fetch(
+          `${API_URL}/api/notifications?${params.toString()}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
+          }
+        );
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
@@ -124,7 +127,7 @@ export default function AdminNotificationsPage() {
             total: 0,
             sent: 0,
             draft: 0,
-            totalUsers: 0
+            totalUsers: 0,
           }
         );
       } catch (err) {
@@ -194,7 +197,7 @@ export default function AdminNotificationsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title: title.trim(),
@@ -202,8 +205,8 @@ export default function AdminNotificationsPage() {
           audience,
           targetRole: audience === "role" ? targetRole : undefined,
           targetEmail: audience === "user" ? targetEmail.trim() : undefined,
-          status: sendStatus
-        })
+          status: sendStatus,
+        }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -217,7 +220,7 @@ export default function AdminNotificationsPage() {
         total: prev.total + 1,
         sent: prev.sent + (data.notification?.status === "sent" ? 1 : 0),
         draft: prev.draft + (data.notification?.status === "draft" ? 1 : 0),
-        totalUsers: prev.totalUsers
+        totalUsers: prev.totalUsers,
       }));
       handleCloseForm();
     } catch (err) {
@@ -241,7 +244,7 @@ export default function AdminNotificationsPage() {
 
       const response = await fetch(`${API_URL}/api/notifications/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
@@ -253,7 +256,7 @@ export default function AdminNotificationsPage() {
       setNotifications((prev) => prev.filter((item) => item.id !== id));
       setRefreshKey((prev) => prev + 1);
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     }
   };
 
@@ -320,7 +323,7 @@ export default function AdminNotificationsPage() {
             </svg>
             <input
               className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
-              placeholder="Tìm kiến thông báo..."
+              placeholder="Tìm kiếm thông báo..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
             />
@@ -353,9 +356,13 @@ export default function AdminNotificationsPage() {
           </div>
           <div className="divide-y divide-white/5">
             {loading ? (
-              <div className="px-4 py-6 text-sm text-white/60">Đang tải dữ liệu...</div>
+              <div className="px-4 py-6 text-sm text-white/60">
+                Đang tải dữ liệu...
+              </div>
             ) : notifications.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-white/60">Chưa có thông báo nào.</div>
+              <div className="px-4 py-6 text-sm text-white/60">
+                Chưa có thông báo nào.
+              </div>
             ) : (
               notifications.map((item) => (
                 <div
@@ -370,14 +377,17 @@ export default function AdminNotificationsPage() {
                         : item.message}
                     </p>
                   </div>
-                  <p className="text-xs text-white/60">{getAudienceLabel(item)}</p>
+                  <p className="text-xs text-white/60">
+                    {getAudienceLabel(item)}
+                  </p>
                   <p className="text-xs text-white/60">
                     {new Date(item.created_at).toLocaleDateString()}
                   </p>
                   <div className="flex items-center gap-2">
                     <span
                       className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] ${
-                        statusClasses[item.status] || "bg-white/10 text-white/70"
+                        statusClasses[item.status] ||
+                        "bg-white/10 text-white/70"
                       }`}
                     >
                       {statusLabels[item.status]}
@@ -399,23 +409,27 @@ export default function AdminNotificationsPage() {
 
         <div className="mt-4 flex items-center justify-between text-xs text-white/50">
           <span>
-            Hien thi {notifications.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
-            {" "}den {Math.min(currentPage * PAGE_SIZE, pagination.total || 0)} ket qua
+            Hiển thị{" "}
+            {notifications.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}{" "}
+            đến {Math.min(currentPage * PAGE_SIZE, pagination.total || 0)} kết
+            quả
           </span>
           <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-8 w-8 rounded-lg border text-xs ${
-                  page === currentPage
-                    ? "border-transparent bg-[#1f8ef1] text-white"
-                    : "border-white/10 bg-[#111b26] text-white/70"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-8 w-8 rounded-lg border text-xs ${
+                    page === currentPage
+                      ? "border-transparent bg-[#1f8ef1] text-white"
+                      : "border-white/10 bg-[#111b26] text-white/70"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
           </div>
         </div>
       </div>
@@ -458,7 +472,9 @@ export default function AdminNotificationsPage() {
                   <select
                     className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
                     value={audience}
-                    onChange={(event) => setAudience(event.target.value as AudienceType)}
+                    onChange={(event) =>
+                      setAudience(event.target.value as AudienceType)
+                    }
                   >
                     <option value="all">Tất cả người dùng</option>
                     <option value="role">Theo vai trò</option>
@@ -470,7 +486,9 @@ export default function AdminNotificationsPage() {
                   <select
                     className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
                     value={sendStatus}
-                    onChange={(event) => setSendStatus(event.target.value as SendStatus)}
+                    onChange={(event) =>
+                      setSendStatus(event.target.value as SendStatus)
+                    }
                   >
                     <option value="sent">Gửi ngay</option>
                     <option value="draft">Lưu nháp</option>
@@ -503,7 +521,9 @@ export default function AdminNotificationsPage() {
               ) : null}
             </div>
 
-            {formError ? <p className="mt-3 text-xs text-red-300">{formError}</p> : null}
+            {formError ? (
+              <p className="mt-3 text-xs text-red-300">{formError}</p>
+            ) : null}
 
             <div className="mt-6 flex items-center justify-end gap-3">
               <button

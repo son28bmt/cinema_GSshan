@@ -44,6 +44,42 @@ const getMovieBySlug = async (slug) => {
   return rows[0];
 };
 
+const getMovieById = async (id) => {
+  const [rows] = await pool.query(
+    `SELECT
+      m.id,
+      m.title,
+      m.original_title,
+      m.studio,
+      m.total_episodes,
+      m.slug,
+      m.release_year,
+      m.poster_url,
+      m.backdrop_url,
+      m.trailer_url,
+      m.status,
+      m.description,
+      m.country,
+      COALESCE(view_stats.total_views, 0) AS views,
+      (
+        SELECT GROUP_CONCAT(g.name ORDER BY g.name SEPARATOR ', ')
+        FROM movie_genres mg
+        JOIN genres g ON g.id = mg.genre_id
+        WHERE mg.movie_id = m.id
+      ) AS genres
+    FROM movies m
+    LEFT JOIN (
+      SELECT movie_id, SUM(views) AS total_views
+      FROM episodes
+      GROUP BY movie_id
+    ) view_stats ON view_stats.movie_id = m.id
+    WHERE m.id = ?
+    LIMIT 1`,
+    [id]
+  );
+  return rows[0];
+};
+
 const createMovie = async ({
   title,
   originalTitle,
@@ -57,7 +93,7 @@ const createMovie = async ({
   posterUrl,
   genreIds,
   studio,
-  totalEpisodes
+  totalEpisodes,
 }) => {
   const connection = await pool.getConnection();
   try {
@@ -78,7 +114,7 @@ const createMovie = async ({
         releaseYear || null,
         trailerUrl || null,
         backdropUrl || null,
-        posterUrl || null
+        posterUrl || null,
       ]
     );
 
@@ -102,6 +138,95 @@ const createMovie = async ({
   }
 };
 
+const updateMovie = async (
+  id,
+  {
+    title,
+    originalTitle,
+    slug,
+    description,
+    status,
+    country,
+    releaseYear,
+    trailerUrl,
+    backdropUrl,
+    posterUrl,
+    genreIds,
+    studio,
+    totalEpisodes,
+  }
+) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [result] = await connection.query(
+      `UPDATE movies 
+       SET 
+         title = ?, 
+         original_title = ?, 
+         studio = ?, 
+         total_episodes = ?, 
+         slug = ?, 
+         description = ?, 
+         status = ?, 
+         country = ?, 
+         release_year = ?, 
+         trailer_url = ?, 
+         backdrop_url = ?, 
+         poster_url = ?,
+         updated_at = NOW()
+       WHERE id = ?`,
+      [
+        title,
+        originalTitle || null,
+        studio || null,
+        totalEpisodes,
+        slug,
+        description || null,
+        status,
+        country || null,
+        releaseYear || null,
+        trailerUrl || null,
+        backdropUrl || null,
+        posterUrl || null,
+        id,
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      return null;
+    }
+
+    if (Array.isArray(genreIds)) {
+      await connection.query("DELETE FROM movie_genres WHERE movie_id = ?", [
+        id,
+      ]);
+      if (genreIds.length > 0) {
+        const values = genreIds.map((genreId) => [id, genreId]);
+        await connection.query(
+          "INSERT INTO movie_genres (movie_id, genre_id) VALUES ?",
+          [values]
+        );
+      }
+    }
+
+    await connection.commit();
+    return true;
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+};
+
+const deleteMovie = async (id) => {
+  const [result] = await pool.query("DELETE FROM movies WHERE id = ?", [id]);
+  return result.affectedRows > 0;
+};
+
 const listMovies = async (options = {}) => {
   const normalizedOptions =
     typeof options === "number" ? { limit: options } : options;
@@ -113,7 +238,7 @@ const listMovies = async (options = {}) => {
     year,
     status,
     country,
-    q
+    q,
   } = normalizedOptions;
 
   const filters = [];
@@ -148,7 +273,9 @@ const listMovies = async (options = {}) => {
 
   if (q) {
     const like = `%${q}%`;
-    filters.push("(m.title LIKE ? OR m.original_title LIKE ? OR m.slug LIKE ?)");
+    filters.push(
+      "(m.title LIKE ? OR m.original_title LIKE ? OR m.slug LIKE ?)"
+    );
     params.push(like, like, like);
   }
 
@@ -156,9 +283,10 @@ const listMovies = async (options = {}) => {
 
   const sortMap = {
     views: "COALESCE(view_stats.total_views, 0) DESC",
-    rating: "COALESCE(rating_stats.avg_rating, 0) DESC, COALESCE(rating_stats.rating_count, 0) DESC",
+    rating:
+      "COALESCE(rating_stats.avg_rating, 0) DESC, COALESCE(rating_stats.rating_count, 0) DESC",
     favorites: "COALESCE(favorite_stats.favorite_count, 0) DESC",
-    latest: "m.created_at DESC"
+    latest: "m.created_at DESC",
   };
 
   const sortClause = sortMap[sort] || sortMap.latest;
@@ -216,7 +344,7 @@ const listMovies = async (options = {}) => {
 
   return {
     movies: rows,
-    total: countRows[0]?.total || 0
+    total: countRows[0]?.total || 0,
   };
 };
 
@@ -236,7 +364,7 @@ const getMovieFilters = async () => {
 
   return {
     years: yearRows.map((row) => row.release_year),
-    countries: countryRows.map((row) => row.country)
+    countries: countryRows.map((row) => row.country),
   };
 };
 
@@ -269,8 +397,11 @@ const listTopRatedMovies = async (limit = 3) => {
 module.exports = {
   findMovieBySlug,
   getMovieBySlug,
+  getMovieById,
   createMovie,
+  updateMovie,
+  deleteMovie,
   listMovies,
   listTopRatedMovies,
-  getMovieFilters
+  getMovieFilters,
 };

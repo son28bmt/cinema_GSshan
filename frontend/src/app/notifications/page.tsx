@@ -66,7 +66,7 @@ export default function NotificationsPage() {
         setNotifications(data.notifications || []);
         setPagination(data.pagination || { page: 1, total: 0, totalPages: 1 });
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -120,7 +120,7 @@ export default function NotificationsPage() {
       );
       window.dispatchEvent(new Event("notifications-updated"));
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     }
   };
 
@@ -147,7 +147,7 @@ export default function NotificationsPage() {
       setNotifications((prev) => prev.map((item) => ({ ...item, read_at: now })));
       window.dispatchEvent(new Event("notifications-updated"));
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     }
   };
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -82,7 +82,7 @@ export default function AdminCommentsPage() {
         cache: "no-store",
       });
       if (!response.ok) {
-        setError("không thể tải được bình luận.");
+        setError("Không thể tải được bình luận.");
         return;
       }
       const data = await response.json();
@@ -97,7 +97,7 @@ export default function AdminCommentsPage() {
         }
       );
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -148,10 +148,10 @@ export default function AdminCommentsPage() {
 
   const handleDelete = async (comment: Comment) => {
     if (!token) {
-      setError("bạn cần đăng nhập để bình luận.");
+      setError("Bạn cần đăng nhập để bình luận.");
       return;
     }
-    if (!window.confirm("Xoa binh luan nay?")) {
+    if (!window.confirm("Xóa bình luận này?")) {
       return;
     }
 
@@ -168,7 +168,7 @@ export default function AdminCommentsPage() {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(data.message || "Khong the xoa binh luan.");
+        setError(data.message || "Không thể xóa bình luận.");
         return;
       }
 
@@ -182,7 +182,7 @@ export default function AdminCommentsPage() {
         pinned: comment.status === "pinned" ? Math.max(0, prev.pinned - 1) : prev.pinned,
       }));
     } catch (err) {
-      setError("Khong the ket noi backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setDeletingId(null);
     }
@@ -198,7 +198,7 @@ export default function AdminCommentsPage() {
           </p>
         </div>
         <button className="rounded-xl border border-white/10 bg-[#111b26] px-4 py-2 text-sm text-white/70">
-          Xuat bao cao
+          Xuất báo cáo
         </button>
       </div>
 
@@ -237,7 +237,7 @@ export default function AdminCommentsPage() {
           {(
             [
               { label: "Tất cả", value: "all" },
-              { label: "chờ Duyệt", value: "pending" },
+              { label: "Chờ Duyệt", value: "pending" },
               { label: "Đã Duyệt", value: "approved" },
               { label: "Đã Ghim", value: "pinned" },
               { label: "Báo cáo", value: "reported" },
@@ -260,7 +260,7 @@ export default function AdminCommentsPage() {
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
           <div className="grid grid-cols-[0.7fr_1.6fr_1fr_0.8fr_0.9fr_0.7fr] bg-[#111b26] items-center justify-items-center px-4 py-3 text-xs text-white/50" >
             <span>Người dùng</span>
-            <span>nội dung bình luận</span>
+            <span>Nội dung bình luận</span>
             <span>Phim / Tập</span>
             <span>Trạng thái</span>
             <span>Ngày tạo</span>
@@ -290,7 +290,7 @@ export default function AdminCommentsPage() {
                     <p>{comment.content}</p>
                     {comment.report_reason ? (
                       <p className="mt-2 text-[11px] text-red-300">
-                        Ly do báo cáo: {comment.report_reason}
+                        Lý do báo cáo: {comment.report_reason}
                       </p>
                     ) : null}
                   </div>
@@ -314,7 +314,7 @@ export default function AdminCommentsPage() {
                       onClick={() => handleDelete(comment)}
                       disabled={deletingId === comment.id}
                     >
-                      {deletingId === comment.id ? "Dang xoa" : "Xoa"}
+                      {deletingId === comment.id ? "Đang xóa" : "Xóa"}
                     </button>
                   </div>
                 </div>
@@ -324,15 +324,15 @@ export default function AdminCommentsPage() {
         </div>
 
         {refreshing ? (
-          <p className="mt-3 text-xs text-white/40">Dang cap nhat...</p>
+          <p className="mt-3 text-xs text-white/40">Đang cập nhật...</p>
         ) : null}
 
         {error ? <p className="mt-4 text-xs text-red-300">{error}</p> : null}
 
         <div className="mt-4 flex items-center justify-between text-xs text-white/50">
           <span>
-            Hien thi {filteredComments.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} den{" "}
-            {Math.min(currentPage * PAGE_SIZE, filteredComments.length)} ket qua
+            Hiển thị {filteredComments.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} đến{" "}
+            {Math.min(currentPage * PAGE_SIZE, filteredComments.length)} kết quả
           </span>
           <div className="flex items-center gap-2">
             {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (

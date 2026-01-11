@@ -62,7 +62,7 @@ export default function AdminServersPage() {
         const data = await response.json();
         setServers(data.servers || []);
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -138,7 +138,7 @@ export default function AdminServersPage() {
       setServers((prev) => [data.server, ...prev]);
       handleCloseForm();
     } catch (err) {
-      setFormError("Không thể kết nối backend.");
+      setFormError("Không thể kết nối dữ liệu.");
     } finally {
       setSaving(false);
     }

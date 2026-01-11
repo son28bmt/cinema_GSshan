@@ -142,7 +142,7 @@ function MoviesPageContent() {
           data.pagination || { page: currentPage, total: 0, totalPages: 1 }
         );
       } catch (err) {
-        setError("không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }

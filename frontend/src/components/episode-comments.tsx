@@ -6,11 +6,11 @@ import SectionHeading from "./section-heading";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 const reportReasons = [
-  "Spam / Quang cao",
-  "Noi dung khong phu hop",
-  "Xuc pham / Tuc tieu",
-  "Gia mao",
-  "Khac",
+  "Spam / Quảng cáo",
+  "Nội dung không phù hợp",
+  "Xúc phạm / Tục tĩu",
+  "Giả mạo",
+  "Khác",
 ];
 
 type Comment = {
@@ -24,7 +24,8 @@ type Comment = {
   report_reason: string | null;
 };
 
-const formatDateTime = (value: string) => new Date(value).toLocaleString("vi-VN");
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("vi-VN");
 
 export default function EpisodeComments({
   episodeId,
@@ -65,7 +66,7 @@ export default function EpisodeComments({
       const data = await response.json();
       setComments(data.comments || []);
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function EpisodeComments({
         setCommentText("");
       }
     } catch (err) {
-      setFeedback("Không thể kết nối backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingComment(false);
     }
@@ -181,7 +182,7 @@ export default function EpisodeComments({
         setReplyingToId(null);
       }
     } catch (err) {
-      setFeedback("Không thể kết nối backend");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingComment(false);
     }
@@ -201,14 +202,17 @@ export default function EpisodeComments({
     setFeedback("");
 
     try {
-      const response = await fetch(`${API_URL}/api/comments/${commentId}/report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason: reportReason }),
-      });
+      const response = await fetch(
+        `${API_URL}/api/comments/${commentId}/report`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reason: reportReason }),
+        }
+      );
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -225,7 +229,7 @@ export default function EpisodeComments({
       setReportingId(null);
       setReportReason("");
     } catch (err) {
-      setFeedback("Không thể kết nối backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setReporting(false);
     }
@@ -240,109 +244,111 @@ export default function EpisodeComments({
             depth > 0 ? "ml-6" : ""
           }`}
         >
-      <div className="flex items-center justify-between text-xs text-white/50">
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-white">{comment.author_name}</p>
-          <p>{comment.author_email || "An danh"}</p>
-        </div>
-        <span>{formatDateTime(comment.created_at)}</span>
-      </div>
-      <p className="mt-3 text-sm text-white/70">{comment.content}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-white/60">
-        <button
-          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/70"
-          onClick={() => {
-            setReplyingToId(comment.id);
-            setReplyText("");
-            setReportingId(null);
-          }}
-        >
-          Trả lời
-        </button>
-        <button
-          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/70"
-          onClick={() => {
-            setReportingId(comment.id);
-            setReportReason("");
-            setReplyingToId(null);
-          }}
-        >
-          Báo cáo
-        </button>
-        {comment.report_reason ? (
-          <span className="text-[11px] text-red-300">
-            Bao cao: {comment.report_reason}
-          </span>
-        ) : null}
-      </div>
+          <div className="flex items-center justify-between text-xs text-white/50">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-white">
+                {comment.author_name}
+              </p>
+              <p>{comment.author_email || "Ẩn danh"}</p>
+            </div>
+            <span>{formatDateTime(comment.created_at)}</span>
+          </div>
+          <p className="mt-3 text-sm text-white/70">{comment.content}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-white/60">
+            <button
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/70"
+              onClick={() => {
+                setReplyingToId(comment.id);
+                setReplyText("");
+                setReportingId(null);
+              }}
+            >
+              Trả lời
+            </button>
+            <button
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/70"
+              onClick={() => {
+                setReportingId(comment.id);
+                setReportReason("");
+                setReplyingToId(null);
+              }}
+            >
+              Báo cáo
+            </button>
+            {comment.report_reason ? (
+              <span className="text-[11px] text-red-300">
+                Báo cáo: {comment.report_reason}
+              </span>
+            ) : null}
+          </div>
 
           {replyingToId === comment.id ? (
-        <div className="mt-4 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
-          <textarea
-            className="min-h-[90px] w-full rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none"
-            placeholder="Nhập nội dung trả lời..."
-            value={replyText}
-            onChange={(event) => setReplyText(event.target.value)}
-          />
-          <div className="flex items-center justify-end gap-2">
-            <button
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70"
-              onClick={() => {
-                setReplyingToId(null);
-                setReplyText("");
-              }}
-            >
-              Huy
-            </button>
-            <button
-              className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
-              onClick={() => handleReply(comment.id)}
-              disabled={sendingComment}
-            >
-              {sendingComment ? "Đang gửi" : "Gửi trả lời"}
-            </button>
-          </div>
-        </div>
-      ) : null}
+            <div className="mt-4 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
+              <textarea
+                className="min-h-[90px] w-full rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none"
+                placeholder="Nhập nội dung trả lời..."
+                value={replyText}
+                onChange={(event) => setReplyText(event.target.value)}
+              />
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70"
+                  onClick={() => {
+                    setReplyingToId(null);
+                    setReplyText("");
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                  onClick={() => handleReply(comment.id)}
+                  disabled={sendingComment}
+                >
+                  {sendingComment ? "Đang gửi" : "Gửi trả lời"}
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {reportingId === comment.id ? (
-        <div className="mt-4 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
-          <p className="text-xs text-white/60">Chon ly do bao cao</p>
-          <div className="flex flex-wrap gap-2">
-            {reportReasons.map((reason) => (
-              <button
-                key={reason}
-                className={`rounded-full px-3 py-1 text-xs ${
-                  reportReason === reason
-                    ? "bg-[var(--accent)] text-white"
-                    : "border border-white/10 bg-white/5 text-white/70"
-                }`}
-                onClick={() => setReportReason(reason)}
-              >
-                {reason}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center justify-end gap-2">
-            <button
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70"
-              onClick={() => {
-                setReportingId(null);
-                setReportReason("");
-              }}
-            >
-              Hủy
-            </button>
-            <button
-              className="rounded-full bg-red-500/80 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
-              onClick={() => handleReport(comment.id)}
-              disabled={reporting}
-            >
-              {reporting ? "Đang gửi" : "Gửi báo cáo"}
-            </button>
-          </div>
-        </div>
-      ) : null}
+            <div className="mt-4 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
+              <p className="text-xs text-white/60">Chọn lý do báo cáo</p>
+              <div className="flex flex-wrap gap-2">
+                {reportReasons.map((reason) => (
+                  <button
+                    key={reason}
+                    className={`rounded-full px-3 py-1 text-xs ${
+                      reportReason === reason
+                        ? "bg-[var(--accent)] text-white"
+                        : "border border-white/10 bg-white/5 text-white/70"
+                    }`}
+                    onClick={() => setReportReason(reason)}
+                  >
+                    {reason}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70"
+                  onClick={() => {
+                    setReportingId(null);
+                    setReportReason("");
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  className="rounded-full bg-red-500/80 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                  onClick={() => handleReport(comment.id)}
+                  disabled={reporting}
+                >
+                  {reporting ? "Đang gửi" : "Gửi báo cáo"}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
         {replies.map((reply) => renderCommentThread(reply, depth + 1))}
       </div>
@@ -360,7 +366,11 @@ export default function EpisodeComments({
           onChange={(event) => setCommentText(event.target.value)}
         />
         <div className="flex items-center justify-between gap-3">
-          {feedback ? <p className="text-xs text-red-300">{feedback}</p> : <span />}
+          {feedback ? (
+            <p className="text-xs text-red-300">{feedback}</p>
+          ) : (
+            <span />
+          )}
           <button
             className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             onClick={handleSubmitComment}

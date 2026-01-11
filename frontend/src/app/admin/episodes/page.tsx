@@ -28,6 +28,13 @@ type Episode = {
   released_at: string | null;
 };
 
+type ServerItem = {
+  id: number;
+  name: string;
+  status: "active" | "maintenance" | "disabled";
+  endpoint_url: string;
+};
+
 const statusLabels: Record<string, string> = {
   published: "Công khai",
   draft: "Bản nháp",
@@ -88,16 +95,23 @@ export default function AdminEpisodesPage() {
   const [loadingMovies, setLoadingMovies] = useState(true);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const [showCreate, setShowCreate] = useState(false);
+  const [editingEpisode, setEditingEpisode] = useState<Episode | null>(null);
+  const [editModeId, setEditModeId] = useState<number | null>(null);
   const [episodeNumber, setEpisodeNumber] = useState("");
   const [episodeTitle, setEpisodeTitle] = useState("");
   const [episodeDescription, setEpisodeDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [linkType, setLinkType] = useState<"m3u8" | "embed">("m3u8");
   const [serverOption, setServerOption] = useState("vip-1");
+  const [servers, setServers] = useState<ServerItem[]>([]);
+  const [loadingServers, setLoadingServers] = useState(true);
   const [isPublished, setIsPublished] = useState(true);
   const [isVipOnly, setIsVipOnly] = useState(false);
+  const [isPremiere, setIsPremiere] = useState(false);
   const [releaseDate, setReleaseDate] = useState("");
   const [releaseTime, setReleaseTime] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -130,6 +144,36 @@ export default function AdminEpisodesPage() {
   }, []);
 
   useEffect(() => {
+    const loadServers = async () => {
+      setLoadingServers(true);
+      try {
+        const response = await fetch(`${API_URL}/api/servers`, {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+        const data = await response.json();
+        const serverRows = (data.servers || []) as ServerItem[];
+        setServers(serverRows);
+        setServerOption((current) => {
+          if (serverRows.length === 0) {
+            return "";
+          }
+          const exists = serverRows.some((server) => String(server.id) === current);
+          return exists ? current : String(serverRows[0].id);
+        });
+      } catch (err) {
+        // ignore, keep empty state
+      } finally {
+        setLoadingServers(false);
+      }
+    };
+
+    loadServers();
+  }, []);
+
+  useEffect(() => {
     if (!selectedMovieId) {
       return;
     }
@@ -137,9 +181,12 @@ export default function AdminEpisodesPage() {
     const loadEpisodes = async () => {
       try {
         setLoadingEpisodes(true);
-        const response = await fetch(`${API_URL}/api/episodes?movieId=${selectedMovieId}`, {
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `${API_URL}/api/episodes?movieId=${selectedMovieId}`,
+          {
+            cache: "no-store",
+          }
+        );
         const data = await response.json();
         setEpisodes(data.episodes || []);
       } catch (err) {
@@ -155,7 +202,9 @@ export default function AdminEpisodesPage() {
   useEffect(() => {
     if (showCreate) {
       const nextNumber =
-        episodes.length > 0 ? episodes[episodes.length - 1].episode_number + 1 : 1;
+        episodes.length > 0
+          ? episodes[episodes.length - 1].episode_number + 1
+          : 1;
       setEpisodeNumber(String(nextNumber));
     }
   }, [showCreate, episodes]);
@@ -178,10 +227,29 @@ export default function AdminEpisodesPage() {
     [episodes]
   );
 
+  const filteredEpisodes = useMemo(() => {
+    return episodes.filter((episode) => {
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        episode.episode_number.toString().includes(searchQuery) ||
+        (episode.title &&
+          episode.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (episode.video_url &&
+          episode.video_url.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesStatus =
+        statusFilter === "all" || episode.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [episodes, searchQuery, statusFilter]);
+
   const handleThumbnailSelect = (
     file: File | undefined,
     setFile: (value: File | null) => void,
-    setPreview: (value: string | null | ((prev: string | null) => string | null)) => void
+    setPreview: (
+      value: string | null | ((prev: string | null) => string | null)
+    ) => void
   ) => {
     if (!file) return;
     setFile(file);
@@ -194,12 +262,20 @@ export default function AdminEpisodesPage() {
   };
 
   const handleThumbnailChange = (event: ChangeEvent<HTMLInputElement>) => {
-    handleThumbnailSelect(event.target.files?.[0], setThumbnailFile, setThumbnailPreview);
+    handleThumbnailSelect(
+      event.target.files?.[0],
+      setThumbnailFile,
+      setThumbnailPreview
+    );
   };
 
   const handleThumbnailDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    handleThumbnailSelect(event.dataTransfer.files?.[0], setThumbnailFile, setThumbnailPreview);
+    handleThumbnailSelect(
+      event.dataTransfer.files?.[0],
+      setThumbnailFile,
+      setThumbnailPreview
+    );
   };
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
@@ -207,14 +283,17 @@ export default function AdminEpisodesPage() {
   };
 
   const resetForm = () => {
+    setEditingEpisode(null);
+    setEditModeId(null);
     setEpisodeNumber("");
     setEpisodeTitle("");
     setEpisodeDescription("");
     setVideoUrl("");
     setLinkType("m3u8");
-    setServerOption("vip-1");
+    setServerOption(servers[0] ? String(servers[0].id) : "");
     setIsPublished(true);
     setIsVipOnly(false);
+    setIsPremiere(false);
     setReleaseDate("");
     setReleaseTime("");
     setThumbnailFile(null);
@@ -236,12 +315,18 @@ export default function AdminEpisodesPage() {
       setSaveError("Vui lòng nhập số tập.");
       return;
     }
+    if (isPremiere && (!releaseDate || !releaseTime)) {
+      setSaveError("Vui lòng nhập đầy đủ ngày và giờ công chiếu.");
+      return;
+    }
 
     setIsSaving(true);
     setSaveError("");
 
     try {
-      const thumbnailUrl = thumbnailFile ? await readFileAsDataUrl(thumbnailFile) : null;
+      const thumbnailUrl = thumbnailFile
+        ? await readFileAsDataUrl(thumbnailFile)
+        : null;
       const releaseAt = releaseDate
         ? releaseTime
           ? `${releaseDate} ${releaseTime}:00`
@@ -255,23 +340,36 @@ export default function AdminEpisodesPage() {
         videoUrl: videoUrl.trim() || undefined,
         status: isPublished ? "published" : "draft",
         releasedAt: releaseAt,
+        liveStartAt: isPremiere ? releaseAt : undefined,
+        isPremiere: isPremiere,
         thumbnailUrl: thumbnailUrl || undefined,
       };
 
-      const response = await fetch(`${API_URL}/api/episodes`, {
-        method: "POST",
+      const isEditing = editModeId !== null;
+      const url = isEditing
+        ? `${API_URL}/api/episodes/${editModeId}`
+        : `${API_URL}/api/episodes`;
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setSaveError(data.message || "Lưu tập phim thất bại.");
+        setSaveError(
+          data.message || `${isEditing ? "Cập nhật" : "Lưu"} tập phim thất bại.`
+        );
         return;
       }
 
-      const refresh = await fetch(`${API_URL}/api/episodes?movieId=${selectedMovieId}`, {
-        cache: "no-store",
-      });
+      const refresh = await fetch(
+        `${API_URL}/api/episodes?movieId=${selectedMovieId}`,
+        {
+          cache: "no-store",
+        }
+      );
       const refreshed = await refresh.json().catch(() => ({}));
       setEpisodes(refreshed.episodes || []);
       setShowCreate(false);
@@ -289,13 +387,66 @@ export default function AdminEpisodesPage() {
     }
   };
 
+  const handleEdit = (episode: Episode) => {
+    setEditingEpisode(episode);
+    setEditModeId(episode.id);
+    setEpisodeNumber(episode.episode_number.toString());
+    setEpisodeTitle(episode.title || "");
+    setEpisodeDescription(episode.description || "");
+    setVideoUrl(episode.video_url || "");
+    setIsPublished(episode.status === "published");
+    // Parse date/time from released_at if available
+    if (episode.released_at) {
+      const releaseDateTime = new Date(episode.released_at);
+      const dateStr = releaseDateTime.toISOString().split("T")[0];
+      const timeStr = releaseDateTime.toTimeString().slice(0, 5);
+      setReleaseDate(dateStr);
+      setReleaseTime(timeStr);
+    }
+    setShowCreate(true);
+  };
+
+  const handleDelete = async (episodeId: number) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa tập phim này?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/episodes/${episodeId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || "Xóa tập phim thất bại.");
+        return;
+      }
+
+      // Refresh episodes list
+      if (selectedMovieId) {
+        const refresh = await fetch(
+          `${API_URL}/api/episodes?movieId=${selectedMovieId}`,
+          {
+            cache: "no-store",
+          }
+        );
+        const refreshed = await refresh.json().catch(() => ({}));
+        setEpisodes(refreshed.episodes || []);
+      }
+    } catch {
+      alert("Không thể xóa tập phim. Hãy thử lại.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-white/5 bg-[#162333] p-6">
         {loadingMovies ? (
           <Spinner label="Đang tải thông tin phim..." />
         ) : !selectedMovie ? (
-          <p className="text-sm text-white/60">Chưa có phim nào để quản lý tập.</p>
+          <p className="text-sm text-white/60">
+            Chưa có phim nào để quản lý tập.
+          </p>
         ) : (
           <div className="flex flex-wrap items-start gap-6">
             <div className="h-24 w-20 overflow-hidden rounded-xl border border-white/10 bg-white/5">
@@ -313,7 +464,9 @@ export default function AdminEpisodesPage() {
                 <select
                   className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs text-white"
                   value={selectedMovieId ?? ""}
-                  onChange={(event) => setSelectedMovieId(Number(event.target.value))}
+                  onChange={(event) =>
+                    setSelectedMovieId(Number(event.target.value))
+                  }
                 >
                   {movies.map((movie) => (
                     <option key={movie.id} value={movie.id}>
@@ -323,8 +476,10 @@ export default function AdminEpisodesPage() {
                 </select>
               </div>
               <p className="text-xs text-white/60">
-                {selectedMovie.release_year ? `${selectedMovie.release_year}` : "Chưa rõ"} •{" "}
-                {selectedMovie.genres || "Chưa phân loại"}
+                {selectedMovie.release_year
+                  ? `${selectedMovie.release_year}`
+                  : "Chưa rõ"}{" "}
+                • {selectedMovie.genres || "Chưa phân loại"}
               </p>
               <p className="text-sm text-white/60">
                 {selectedMovie.description || "Chưa có mô tả cho phim này."}
@@ -336,12 +491,17 @@ export default function AdminEpisodesPage() {
                 { label: "Total Views", value: formatViews(totalViews) },
                 {
                   label: "Status",
-                  value: statusLabels[selectedMovie.status] || selectedMovie.status,
+                  value:
+                    statusLabels[selectedMovie.status] || selectedMovie.status,
                 },
               ].map((item) => (
                 <div key={item.label}>
-                  <p className="uppercase text-[10px] text-white/40">{item.label}</p>
-                  <p className="mt-1 text-sm font-semibold text-white">{item.value}</p>
+                  <p className="uppercase text-[10px] text-white/40">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white">
+                    {item.value}
+                  </p>
                 </div>
               ))}
             </div>
@@ -353,9 +513,13 @@ export default function AdminEpisodesPage() {
         <div className="rounded-2xl border border-white/5 bg-[#162333] p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">Thêm Tập Phim Mới</h2>
+              <h2 className="text-lg font-semibold">
+                {editingEpisode ? "Sửa Tập Phim" : "Thêm Tập Phim Mới"}
+              </h2>
               <p className="mt-1 text-xs text-white/60">
-                Nhập thông tin chi tiết và nguồn phát cho tập phim mới.
+                {editingEpisode
+                  ? `Chỉnh sửa thông tin cho Tập ${editingEpisode.episode_number}`
+                  : "Nhập thông tin chi tiết và nguồn phát cho tập phim mới."}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -382,7 +546,9 @@ export default function AdminEpisodesPage() {
             </div>
           </div>
 
-          {saveError ? <p className="mt-4 text-xs text-red-300">{saveError}</p> : null}
+          {saveError ? (
+            <p className="mt-4 text-xs text-red-300">{saveError}</p>
+          ) : null}
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[2fr_1fr]">
             <div className="space-y-6">
@@ -420,7 +586,9 @@ export default function AdminEpisodesPage() {
                     <textarea
                       className="min-h-[120px] w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
                       value={episodeDescription}
-                      onChange={(event) => setEpisodeDescription(event.target.value)}
+                      onChange={(event) =>
+                        setEpisodeDescription(event.target.value)
+                      }
                       placeholder="Nhập tóm tắt nội dung tập phim này..."
                     />
                   </label>
@@ -446,11 +614,26 @@ export default function AdminEpisodesPage() {
                       <select
                         className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
                         value={serverOption}
-                        onChange={(event) => setServerOption(event.target.value)}
+                        onChange={(event) =>
+                          setServerOption(event.target.value)
+                        }
                       >
-                        <option value="vip-1">Server VIP 1 (Fast)</option>
-                        <option value="vip-2">Server VIP 2</option>
-                        <option value="backup">Server Backup</option>
+                        {loadingServers ? (
+                          <option value="">Đang tải server...</option>
+                        ) : servers.length === 0 ? (
+                          <option value="">Chưa có server</option>
+                        ) : (
+                          servers.map((server) => (
+                            <option key={server.id} value={String(server.id)}>
+                              {server.name}
+                              {server.status === "maintenance"
+                                ? " (Bảo trì)"
+                                : server.status === "disabled"
+                                  ? " (Dừng)"
+                                  : ""}
+                            </option>
+                          ))
+                        )}
                       </select>
                     </label>
                     <label className="space-y-2 text-xs text-white/60">
@@ -529,29 +712,91 @@ export default function AdminEpisodesPage() {
                       className="h-4 w-4 accent-[#1f8ef1]"
                     />
                   </label>
-                  <label className="space-y-2">
-                    Ngày phát hành
-                    <input
-                      type="date"
-                      className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
-                      value={releaseDate}
-                      onChange={(event) => setReleaseDate(event.target.value)}
-                    />
-                  </label>
-                  <label className="space-y-2">
-                    Giờ phát hành
-                    <input
-                      type="time"
-                      className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
-                      value={releaseTime}
-                      onChange={(event) => setReleaseTime(event.target.value)}
-                    />
-                  </label>
+
+                  <div className="border-t border-white/5 pt-4">
+                    <label className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-white">
+                          🎬 Công chiếu
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPremiere(!isPremiere)}
+                        className={`relative h-6 w-11 rounded-full transition-colors ${
+                          isPremiere ? "bg-[#1f8ef1]" : "bg-white/20"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
+                            isPremiere ? "left-[22px]" : "left-0.5"
+                          }`}
+                        />
+                      </button>
+                    </label>
+                    {isPremiere && (
+                      <p className="mt-2 text-[11px] text-yellow-300/80">
+                        Video sẽ được phát công khai vào thời gian đã đặt.
+                      </p>
+                    )}
+                  </div>
+
+                  {isPremiere && (
+                    <>
+                      <label className="space-y-2">
+                        <span className="flex items-center gap-1 text-white">
+                          Ngày công chiếu
+                          <span className="text-red-400">*</span>
+                        </span>
+                        <input
+                          type="date"
+                          className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
+                          value={releaseDate}
+                          onChange={(event) =>
+                            setReleaseDate(event.target.value)
+                          }
+                          required={isPremiere}
+                        />
+                      </label>
+                      <label className="space-y-2">
+                        <span className="flex items-center gap-1 text-white">
+                          Giờ công chiếu
+                          <span className="text-red-400">*</span>
+                        </span>
+                        <input
+                          type="time"
+                          className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
+                          value={releaseTime}
+                          onChange={(event) =>
+                            setReleaseTime(event.target.value)
+                          }
+                          required={isPremiere}
+                        />
+                        <span className="text-[11px] text-white/40">
+                          Video sẽ tự động công khai vào giờ này
+                        </span>
+                      </label>
+                    </>
+                  )}
+
+                  {!isPremiere && (
+                    <label className="space-y-2">
+                      Ngày phát hành (không bắt buộc)
+                      <input
+                        type="date"
+                        className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
+                        value={releaseDate}
+                        onChange={(event) => setReleaseDate(event.target.value)}
+                      />
+                    </label>
+                  )}
                 </div>
               </section>
 
               <section className="rounded-2xl border border-white/5 bg-[#111b26] p-5">
-                <h3 className="text-sm font-semibold">Ảnh bìa tập (Thumbnail)</h3>
+                <h3 className="text-sm font-semibold">
+                  Ảnh bìa tập (Thumbnail)
+                </h3>
                 <div
                   role="button"
                   tabIndex={0}
@@ -589,7 +834,9 @@ export default function AdminEpisodesPage() {
                   />
                 </div>
                 {thumbnailFile ? (
-                  <p className="mt-2 text-[11px] text-white/40">{thumbnailFile.name}</p>
+                  <p className="mt-2 text-[11px] text-white/40">
+                    {thumbnailFile.name}
+                  </p>
                 ) : null}
               </section>
 
@@ -620,12 +867,20 @@ export default function AdminEpisodesPage() {
               <input
                 className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
                 placeholder="Tìm kiếm tập phim..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-2">
-              <button className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs text-white/70">
-                Lọc
-              </button>
+              <select
+                className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs text-white/70"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="published">Công khai</option>
+                <option value="draft">Bản nháp</option>
+              </select>
               <button
                 className="rounded-xl bg-[#1f8ef1] px-4 py-2 text-xs font-semibold text-white"
                 onClick={() => setShowCreate(true)}
@@ -647,12 +902,14 @@ export default function AdminEpisodesPage() {
             <div className="divide-y divide-white/5">
               {loadingEpisodes ? (
                 <Spinner label="Đang tải tập phim..." />
-              ) : episodes.length === 0 ? (
+              ) : filteredEpisodes.length === 0 ? (
                 <div className="px-4 py-6 text-sm text-white/60">
-                  Chưa có tập nào cho phim này.
+                  {episodes.length === 0
+                    ? "Chưa có tập nào cho phim này."
+                    : "Không tìm thấy tập phim nào."}
                 </div>
               ) : (
-                episodes.map((episode) => (
+                filteredEpisodes.map((episode) => (
                   <div
                     key={episode.id}
                     className="grid grid-cols-[0.5fr_1.6fr_1.4fr_0.8fr_0.8fr_0.8fr] items-center px-4 py-4 text-sm"
@@ -661,7 +918,9 @@ export default function AdminEpisodesPage() {
                       {episode.episode_number.toString().padStart(2, "0")}
                     </span>
                     <div>
-                      <p className="font-semibold text-white">{episode.title || "Chưa có tên"}</p>
+                      <p className="font-semibold text-white">
+                        {episode.title || "Chưa có tên"}
+                      </p>
                       <p className="text-xs text-white/40">
                         {formatRelativeTime(episode.updated_at)}
                       </p>
@@ -674,16 +933,23 @@ export default function AdminEpisodesPage() {
                     </span>
                     <span
                       className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
-                        statusStyles[episode.status] || "bg-white/10 text-white/70"
+                        statusStyles[episode.status] ||
+                        "bg-white/10 text-white/70"
                       }`}
                     >
                       {statusLabels[episode.status] || episode.status}
                     </span>
                     <div className="flex items-center gap-2 text-xs">
-                      <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                      <button
+                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
+                        onClick={() => handleEdit(episode)}
+                      >
                         Sửa
                       </button>
-                      <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                      <button
+                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                        onClick={() => handleDelete(episode.id)}
+                      >
                         Xóa
                       </button>
                     </div>

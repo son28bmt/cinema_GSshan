@@ -34,7 +34,19 @@ const readFileAsDataUrl = (file: File) =>
 
 export default function AdminMovieCreatePage() {
   const router = useRouter();
+  const [movieId, setMovieId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("movieId");
+      setMovieId(id);
+      setIsEditMode(Boolean(id));
+    }
+  }, []);
+
+  const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [originalTitle, setOriginalTitle] = useState("");
   const [studio, setStudio] = useState("");
@@ -43,7 +55,9 @@ export default function AdminMovieCreatePage() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("ongoing");
   const [country, setCountry] = useState("Viet Nam");
-  const [releaseYear, setReleaseYear] = useState(String(new Date().getFullYear()));
+  const [releaseYear, setReleaseYear] = useState(
+    String(new Date().getFullYear())
+  );
   const [totalEpisodes, setTotalEpisodes] = useState("");
   const [trailerUrl, setTrailerUrl] = useState("");
 
@@ -79,7 +93,7 @@ export default function AdminMovieCreatePage() {
         const response = await fetch(`${API_URL}/api/genres`);
         const data = await response.json();
         setGenres(data.genres || []);
-      } catch (err) {
+      } catch {
         setGenreError("Không thể tải thể loại.");
       } finally {
         setGenresLoading(false);
@@ -89,9 +103,71 @@ export default function AdminMovieCreatePage() {
     loadGenres();
   }, []);
 
+  useEffect(() => {
+    if (!movieId) return;
+
+    const loadMovie = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/movies/id/${movieId}`);
+        if (!response.ok) {
+          setSaveError("Không thể tải thông tin phim.");
+          return;
+        }
+        const data = await response.json();
+        const movie = data.movie;
+
+        setTitle(movie.title || "");
+        setOriginalTitle(movie.original_title || "");
+        setStudio(movie.studio || "");
+        setSlug(movie.slug || "");
+        setDescription(movie.description || "");
+        setStatus(movie.status || "ongoing");
+        setCountry(movie.country || "Viet Nam");
+        setReleaseYear(
+          movie.release_year
+            ? String(movie.release_year)
+            : String(new Date().getFullYear())
+        );
+        setTotalEpisodes(
+          movie.total_episodes ? String(movie.total_episodes) : ""
+        );
+        setTrailerUrl(movie.trailer_url || "");
+
+        if (movie.backdrop_url) {
+          setBackdropPreview(movie.backdrop_url);
+        }
+        if (movie.poster_url) {
+          setPosterPreview(movie.poster_url);
+        }
+
+        // Set genres - movie.genres is string like "Action,Drama"
+        if (movie.genres) {
+          const genreNames = movie.genres
+            .split(",")
+            .map((g: string) => g.trim());
+          // We'll set selectedGenres after genres are loaded
+          setTimeout(() => {
+            const matchedIds = genres
+              .filter((g) => genreNames.includes(g.name))
+              .map((g) => g.id);
+            setSelectedGenres(matchedIds);
+          }, 100);
+        }
+      } catch {
+        setSaveError("Không thể tải thông tin phim.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMovie();
+  }, [movieId, genres]);
+
   const slugPreview = useMemo(() => {
     const safeSlug = slug || slugify(title);
-    return safeSlug ? `moviestream.com/phim/${safeSlug}` : "moviestream.com/phim";
+    return safeSlug
+      ? `moviestream.com/phim/${safeSlug}`
+      : "moviestream.com/phim";
   }, [slug, title]);
 
   const toggleGenre = (id: number) => {
@@ -126,7 +202,7 @@ export default function AdminMovieCreatePage() {
       setNewGenre("");
       setAddingGenre(false);
     } catch (err) {
-      setGenreError("Không thể kết nối backend.");
+      setGenreError("Không thể kết nối dữ liệu.");
     } finally {
       setSavingGenre(false);
     }
@@ -135,7 +211,9 @@ export default function AdminMovieCreatePage() {
   const handleFileSelect = (
     file: File | undefined,
     setFile: (value: File | null) => void,
-    setPreview: (value: string | null | ((prev: string | null) => string | null)) => void
+    setPreview: (
+      value: string | null | ((prev: string | null) => string | null)
+    ) => void
   ) => {
     if (!file) {
       return;
@@ -150,7 +228,11 @@ export default function AdminMovieCreatePage() {
   };
 
   const handleBackdropChange = (event: ChangeEvent<HTMLInputElement>) => {
-    handleFileSelect(event.target.files?.[0], setBackdropFile, setBackdropPreview);
+    handleFileSelect(
+      event.target.files?.[0],
+      setBackdropFile,
+      setBackdropPreview
+    );
   };
 
   const handlePosterChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -159,12 +241,20 @@ export default function AdminMovieCreatePage() {
 
   const handleBackdropDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    handleFileSelect(event.dataTransfer.files?.[0], setBackdropFile, setBackdropPreview);
+    handleFileSelect(
+      event.dataTransfer.files?.[0],
+      setBackdropFile,
+      setBackdropPreview
+    );
   };
 
   const handlePosterDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    handleFileSelect(event.dataTransfer.files?.[0], setPosterFile, setPosterPreview);
+    handleFileSelect(
+      event.dataTransfer.files?.[0],
+      setPosterFile,
+      setPosterPreview
+    );
   };
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
@@ -198,14 +288,18 @@ export default function AdminMovieCreatePage() {
     setSaveSuccess("");
 
     try {
-      const backdropUrl = backdropFile ? await readFileAsDataUrl(backdropFile) : null;
+      const backdropUrl = backdropFile
+        ? await readFileAsDataUrl(backdropFile)
+        : null;
       const posterUrl = posterFile ? await readFileAsDataUrl(posterFile) : null;
 
       const payload = {
         title: title.trim(),
         originalTitle: originalTitle.trim() || undefined,
         studio: studio.trim() || undefined,
-        totalEpisodes: totalEpisodes ? Number.parseInt(totalEpisodes, 10) : undefined,
+        totalEpisodes: totalEpisodes
+          ? Number.parseInt(totalEpisodes, 10)
+          : undefined,
         slug: slug.trim() || undefined,
         description: description.trim() || undefined,
         status,
@@ -217,19 +311,26 @@ export default function AdminMovieCreatePage() {
         genreIds: selectedGenres,
       };
 
-      const response = await fetch(`${API_URL}/api/movies`, {
-        method: "POST",
+      const url = isEditMode
+        ? `${API_URL}/api/movies/id/${movieId}`
+        : `${API_URL}/api/movies`;
+      const method = isEditMode ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setSaveError(data.message || "Lưu phim thất bại.");
+        setSaveError(
+          data.message || `${isEditMode ? "Cập nhật" : "Lưu"} phim thất bại.`
+        );
         return;
       }
 
-      setSaveSuccess("Đã lưu phim mới.");
+      setSaveSuccess(isEditMode ? "Đã cập nhật phim." : "Đã lưu phim mới.");
     } catch (err) {
       setSaveError("Không thể lưu phim. Hãy thử lại.");
     } finally {
@@ -241,9 +342,13 @@ export default function AdminMovieCreatePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Thêm mới phim</h1>
+          <h1 className="text-2xl font-semibold">
+            {isEditMode ? "Sửa phim" : "Thêm mới phim"}
+          </h1>
           <p className="mt-1 text-sm text-white/60">
-            Nhập thông tin chi tiết cho bộ phim mới để hiển thị trên hệ thống.
+            {isEditMode
+              ? "Cập nhật thông tin cho bộ phim đã có."
+              : "Nhập thông tin chi tiết cho bộ phim mới để hiển thị trên hệ thống."}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -264,7 +369,9 @@ export default function AdminMovieCreatePage() {
       </div>
 
       {saveError ? <p className="text-sm text-red-300">{saveError}</p> : null}
-      {saveSuccess ? <p className="text-sm text-emerald-300">{saveSuccess}</p> : null}
+      {saveSuccess ? (
+        <p className="text-sm text-emerald-300">{saveSuccess}</p>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
@@ -325,7 +432,7 @@ export default function AdminMovieCreatePage() {
                   </button>
                 </div>
               </label>
-                <label className="space-y-2 text-xs text-white/60 md:col-span-2">
+              <label className="space-y-2 text-xs text-white/60 md:col-span-2">
                 Mô tả phim
                 <RichTextEditor
                   value={description}
@@ -397,7 +504,9 @@ export default function AdminMovieCreatePage() {
                   />
                 </div>
                 {backdropFile ? (
-                  <p className="text-[11px] text-white/40">{backdropFile.name}</p>
+                  <p className="text-[11px] text-white/40">
+                    {backdropFile.name}
+                  </p>
                 ) : null}
               </label>
             </div>
@@ -566,7 +675,9 @@ export default function AdminMovieCreatePage() {
               />
             </div>
             {posterFile ? (
-              <p className="mt-2 text-[11px] text-white/40">{posterFile.name}</p>
+              <p className="mt-2 text-[11px] text-white/40">
+                {posterFile.name}
+              </p>
             ) : null}
           </section>
         </div>

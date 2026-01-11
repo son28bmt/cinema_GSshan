@@ -32,6 +32,7 @@ export default function AdminGenresPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingGenre, setEditingGenre] = useState<Genre | null>(null);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -51,7 +52,7 @@ export default function AdminGenresPage() {
         const data = await response.json();
         setGenres(data.genres || []);
       } catch (err) {
-        setError("Không thể kết nối backend.");
+        setError("Không thể kết nối dữ liệu.");
       } finally {
         setLoading(false);
       }
@@ -108,10 +109,42 @@ export default function AdminGenresPage() {
 
   const handleCloseForm = () => {
     setShowForm(false);
+    setEditingGenre(null);
     setName("");
     setSlug("");
     setDescription("");
     setFormError("");
+  };
+
+  const handleEdit = (genre: Genre) => {
+    setEditingGenre(genre);
+    setName(genre.name);
+    setSlug(genre.slug);
+    setDescription(genre.description || "");
+    setFormError("");
+    setShowForm(true);
+  };
+
+  const handleDelete = async (genreId: number) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa thể loại này?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/genres/${genreId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || "Không thể xóa thể loại.");
+        return;
+      }
+
+      setGenres((prev) => prev.filter((g) => g.id !== genreId));
+    } catch {
+      alert("Không thể xóa thể loại. Hãy thử lại.");
+    }
   };
 
   const handleSave = async () => {
@@ -135,21 +168,39 @@ export default function AdminGenresPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/genres`, {
-        method: "POST",
+      const isEditing = editingGenre !== null;
+      const url = isEditing
+        ? `${API_URL}/api/genres/${editingGenre.id}`
+        : `${API_URL}/api/genres`;
+      const method = isEditing ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFormError(data.message || "Không thể lưu thể loại.");
+        setFormError(
+          data.message ||
+            `Không thể ${isEditing ? "cập nhật" : "lưu"} thể loại.`
+        );
         return;
       }
-      const created = data.genre as Genre;
-      setGenres((prev) => [{ ...created, movie_count: 0 }, ...prev]);
+
+      if (isEditing) {
+        setGenres((prev) =>
+          prev.map((g) =>
+            g.id === editingGenre.id ? { ...g, ...data.genre } : g
+          )
+        );
+      } else {
+        const created = data.genre as Genre;
+        setGenres((prev) => [{ ...created, movie_count: 0 }, ...prev]);
+      }
       handleCloseForm();
-    } catch (err) {
-      setFormError("Không thể kết nối backend.");
+    } catch {
+      setFormError("Không thể kết nối dữ liệu.");
     } finally {
       setSaving(false);
     }
@@ -240,10 +291,16 @@ export default function AdminGenresPage() {
                     {genre.movie_count ?? 0}
                   </span>
                   <div className="flex items-center gap-2 text-xs">
-                    <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                    <button
+                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
+                      onClick={() => handleEdit(genre)}
+                    >
                       Sửa
                     </button>
-                    <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                    <button
+                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                      onClick={() => handleDelete(genre.id)}
+                    >
                       Xóa
                     </button>
                   </div>
@@ -258,8 +315,11 @@ export default function AdminGenresPage() {
         <div className="mt-4 flex items-center justify-between text-xs text-white/50">
           <span>
             Hiển thị{" "}
-            {filteredGenres.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}{" "}
-            đến {Math.min(currentPage * PAGE_SIZE, filteredGenres.length)} kết quả
+            {filteredGenres.length === 0
+              ? 0
+              : (currentPage - 1) * PAGE_SIZE + 1}{" "}
+            đến {Math.min(currentPage * PAGE_SIZE, filteredGenres.length)} kết
+            quả
           </span>
           <div className="flex items-center gap-2">
             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -285,7 +345,9 @@ export default function AdminGenresPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#111b26] p-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Thêm thể loại mới</h2>
+              <h2 className="text-lg font-semibold">
+                {editingGenre ? "Sửa thể loại" : "Thêm thể loại mới"}
+              </h2>
               <button
                 className="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70"
                 onClick={handleCloseForm}
@@ -327,7 +389,9 @@ export default function AdminGenresPage() {
               </label>
             </div>
 
-            {formError ? <p className="mt-3 text-xs text-red-300">{formError}</p> : null}
+            {formError ? (
+              <p className="mt-3 text-xs text-red-300">{formError}</p>
+            ) : null}
 
             <div className="mt-6 flex items-center justify-end gap-3">
               <button

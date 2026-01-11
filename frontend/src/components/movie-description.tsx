@@ -10,7 +10,7 @@ export default function MovieDescription({
   maxLength?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const content = description || "Chua co mo ta cho phim nay.";
+  const content = description || "Chưa có mô tả cho phim này.";
   const plainText = useMemo(() => content.replace(/<[^>]*>/g, ""), [content]);
   const shouldTrim = plainText.length > maxLength;
   const displayText = useMemo(() => {

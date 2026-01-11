@@ -24,14 +24,15 @@ type RatingSummary = {
 
 const ratingLevels = [5, 4, 3, 2, 1];
 const reportReasons = [
-  "Spam / Quang cao",
-  "Noi dung khong phu hop",
-  "Xuc pham / Tuc tieu",
-  "Gia mao",
-  "Khac",
+  "Spam / Quảng cáo",
+  "Nội dung không phù hợp",
+  "Xúc phạm / Tục tĩu",
+  "Giả mạo",
+  "Khác",
 ];
 
-const formatDateTime = (value: string) => new Date(value).toLocaleString("vi-VN");
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("vi-VN");
 
 export default function MovieReviews({ movieId }: { movieId: number }) {
   const [summary, setSummary] = useState<RatingSummary>({
@@ -63,14 +64,16 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
   const loadData = async () => {
     try {
       const [ratingRes, commentRes] = await Promise.all([
-        fetch(`${API_URL}/api/ratings?movieId=${movieId}`, { cache: "no-store" }),
+        fetch(`${API_URL}/api/ratings?movieId=${movieId}`, {
+          cache: "no-store",
+        }),
         fetch(`${API_URL}/api/comments?movieId=${movieId}&limit=50`, {
           cache: "no-store",
         }),
       ]);
 
       if (!ratingRes.ok) {
-        setError("Khong tai duoc danh gia.");
+        setError("Không tải được đánh giá.");
       } else {
         const ratingData = await ratingRes.json();
         if (ratingData.summary) {
@@ -79,13 +82,13 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
       }
 
       if (!commentRes.ok) {
-        setError("Khong tai duoc binh luan.");
+        setError("Không tải được bình luận.");
       } else {
         const commentData = await commentRes.json();
         setComments(commentData.comments || []);
       }
     } catch (err) {
-      setError("Khong the ket noi backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
     }
@@ -129,7 +132,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
 
   const handleRate = async (value: number) => {
     if (!token) {
-      setFeedback("Ban can dang nhap de danh gia.");
+      setFeedback("Bạn cần đăng nhập để đánh giá.");
       return;
     }
 
@@ -149,7 +152,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback(data.message || "Khong the luu danh gia.");
+        setFeedback(data.message || "Không thể lưu đánh giá.");
         return;
       }
 
@@ -157,7 +160,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
         setSummary(data.summary);
       }
     } catch (err) {
-      setFeedback("Khong the ket noi backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingRating(false);
     }
@@ -165,11 +168,11 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
 
   const handleSubmitComment = async () => {
     if (!commentText.trim()) {
-      setFeedback("Vui long nhap noi dung binh luan.");
+      setFeedback("Vui lòng nhập nội dung bình luận.");
       return;
     }
     if (!token) {
-      setFeedback("Ban can dang nhap de binh luan.");
+      setFeedback("Bạn cần đăng nhập để bình luận.");
       return;
     }
 
@@ -191,7 +194,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback(data.message || "Khong the gui binh luan.");
+        setFeedback(data.message || "Không thể gửi bình luận.");
         return;
       }
 
@@ -200,7 +203,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
         setCommentText("");
       }
     } catch (err) {
-      setFeedback("Không thể kết nối backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingComment(false);
     }
@@ -245,7 +248,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
         setReplyingToId(null);
       }
     } catch (err) {
-      setFeedback("Không thể kết nối backend.");
+      setFeedback("Không thể kết nối dữ liệu.");
     } finally {
       setSendingComment(false);
     }
@@ -265,14 +268,17 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
     setFeedback("");
 
     try {
-      const response = await fetch(`${API_URL}/api/comments/${commentId}/report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ reason: reportReason }),
-      });
+      const response = await fetch(
+        `${API_URL}/api/comments/${commentId}/report`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reason: reportReason }),
+        }
+      );
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -289,7 +295,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
       setReportingId(null);
       setReportReason("");
     } catch (err) {
-      setFeedback("Khoogn thể kết nối backend.");
+      setFeedback("Không thể kết nối backend.");
     } finally {
       setReporting(false);
     }
@@ -402,14 +408,14 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
                     setReportReason("");
                   }}
                 >
-                  Huy
+                  Hủy
                 </button>
                 <button
                   className="rounded-full bg-red-500/80 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                   onClick={() => handleReport(comment.id)}
                   disabled={reporting}
                 >
-                  {reporting ? "Dang gui" : "Gui bao cao"}
+                  {reporting ? "Đang gửi" : "Gửi báo cáo"}
                 </button>
               </div>
             </div>
@@ -422,14 +428,16 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
-      <SectionHeading title="Danh gia & Binh luan" />
+      <SectionHeading title="Đánh giá & Bình luận" />
       <div className="mt-5 grid gap-5 lg:grid-cols-[0.6fr_1fr]">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="text-3xl font-semibold">
             {summary.total === 0 ? "-" : summary.average.toFixed(1)}
           </p>
           <p className="text-sm text-white/60">
-            {summary.total === 0 ? "Chua co danh gia" : `${summary.total} danh gia`}
+            {summary.total === 0
+              ? "Chưa có đánh giá"
+              : `${summary.total} đánh giá`}
           </p>
           <div className="mt-4 space-y-2 text-xs text-white/60">
             {ratingLevels.map((level, index) => (
@@ -456,7 +464,7 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
                 }`}
                 onClick={() => handleRate(level)}
                 disabled={sendingRating}
-                aria-label={`Danh gia ${level} sao`}
+                aria-label={`Đánh giá ${level} sao`}
               >
                 {level}
               </button>
@@ -466,18 +474,22 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
         <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
           <textarea
             className="min-h-[140px] w-full rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white placeholder:text-white/40 focus:outline-none"
-            placeholder="Viet binh luan cua ban..."
+            placeholder="Viết bình luận của bạn..."
             value={commentText}
             onChange={(event) => setCommentText(event.target.value)}
           />
           <div className="flex items-center justify-between gap-3">
-            {feedback ? <p className="text-xs text-red-300">{feedback}</p> : <span />}
+            {feedback ? (
+              <p className="text-xs text-red-300">{feedback}</p>
+            ) : (
+              <span />
+            )}
             <button
               className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleSubmitComment}
               disabled={sendingComment}
             >
-              {sendingComment ? "Dang gui" : "Gui binh luan"}
+              {sendingComment ? "Đang gửi" : "Gửi bình luận"}
             </button>
           </div>
         </div>
@@ -488,10 +500,10 @@ export default function MovieReviews({ movieId }: { movieId: number }) {
         {loading ? (
           <div className="flex items-center gap-3 text-sm text-white/60">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
-            Dang tai binh luan...
+            Đang tải bình luận...
           </div>
         ) : grouped.roots.length === 0 ? (
-          <p className="text-sm text-white/60">Chua co binh luan.</p>
+          <p className="text-sm text-white/60">Chưa có bình luận.</p>
         ) : (
           grouped.roots.map((comment) => renderThread(comment))
         )}

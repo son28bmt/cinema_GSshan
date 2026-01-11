@@ -54,7 +54,7 @@ export default function RegisterPage() {
 
       router.push("/profile");
     } catch (err) {
-      setError("Không thể kết nối backend.");
+      setError("Không thể kết nối dữ liệu.");
     } finally {
       setLoading(false);
     }

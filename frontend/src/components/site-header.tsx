@@ -55,10 +55,13 @@ export default function SiteHeader() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/notifications/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
+      const response = await fetch(
+        `${API_URL}/api/notifications/unread-count`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }
+      );
       if (!response.ok) {
         setUnreadCount(0);
         return;
@@ -164,7 +167,7 @@ export default function SiteHeader() {
           return;
         }
         setSuggestions([]);
-        setSearchError("Khong tim thay du lieu.");
+        setSearchError("Không tìm thấy dữ liệu.");
       } finally {
         setIsSearching(false);
       }
@@ -258,7 +261,7 @@ export default function SiteHeader() {
             </svg>
             <input
               className="w-48 bg-transparent text-xs text-white placeholder:text-white/40 focus:outline-none"
-              placeholder="Tim kiem phim"
+              placeholder="Tìm kiếm phim"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
@@ -274,11 +277,13 @@ export default function SiteHeader() {
             {mounted && isSuggestionsOpen && query.trim().length > 0 ? (
               <div className="absolute left-0 top-full mt-3 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0f141d] text-xs text-white/70 shadow-xl">
                 {isSearching ? (
-                  <div className="px-4 py-3 text-white/60">Dang tim...</div>
+                  <div className="px-4 py-3 text-white/60">Đang tìm...</div>
                 ) : searchError ? (
                   <div className="px-4 py-3 text-red-300">{searchError}</div>
                 ) : suggestions.length === 0 ? (
-                  <div className="px-4 py-3 text-white/60">Khong co ket qua.</div>
+                  <div className="px-4 py-3 text-white/60">
+                    Không có kết quả.
+                  </div>
                 ) : (
                   <div className="max-h-72 overflow-auto">
                     {suggestions.map((movie) => (
@@ -299,9 +304,13 @@ export default function SiteHeader() {
                           ) : null}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm text-white">{movie.title}</p>
+                          <p className="truncate text-sm text-white">
+                            {movie.title}
+                          </p>
                           <p className="text-[11px] text-white/50">
-                            {movie.release_year ? movie.release_year : "Chua ro"}
+                            {movie.release_year
+                              ? movie.release_year
+                              : "Chưa rõ"}
                           </p>
                         </div>
                       </Link>
@@ -317,9 +326,14 @@ export default function SiteHeader() {
               <Link
                 href="/notifications"
                 className="relative grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-sm"
-                aria-label="Thong bao"
+                aria-label="Thông báo"
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden
+                >
                   <path d="M12 2a6 6 0 016 6v4l2 3H4l2-3V8a6 6 0 016-6z" />
                 </svg>
                 {unreadCount > 0 ? (
@@ -340,7 +354,7 @@ export default function SiteHeader() {
               href="/login"
               className="hidden rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[rgba(239,43,79,0.35)] sm:inline-flex"
             >
-              Dang nhap
+              Đăng nhập
             </Link>
           )}
 
@@ -364,7 +378,7 @@ export default function SiteHeader() {
           <button
             className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-sm lg:hidden"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            aria-label="Mo menu"
+            aria-label="Mở menu"
           >
             <svg
               className="h-4 w-4"
@@ -398,7 +412,7 @@ export default function SiteHeader() {
                 </svg>
                 <input
                   className="w-full bg-transparent text-xs text-white placeholder:text-white/40 focus:outline-none"
-                  placeholder="Tim kiem phim"
+                  placeholder="Tìm kiếm phim"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={(event) => {
@@ -415,11 +429,13 @@ export default function SiteHeader() {
               {mounted && isSuggestionsOpen && query.trim().length > 0 ? (
                 <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[#0f141d] text-xs text-white/70 shadow-xl">
                   {isSearching ? (
-                    <div className="px-4 py-3 text-white/60">Dang tim...</div>
+                    <div className="px-4 py-3 text-white/60">Đang tìm...</div>
                   ) : searchError ? (
                     <div className="px-4 py-3 text-red-300">{searchError}</div>
                   ) : suggestions.length === 0 ? (
-                    <div className="px-4 py-3 text-white/60">Khong co ket qua.</div>
+                    <div className="px-4 py-3 text-white/60">
+                      Không có kết quả.
+                    </div>
                   ) : (
                     <div className="max-h-72 overflow-auto">
                       {suggestions.map((movie) => (
@@ -440,9 +456,13 @@ export default function SiteHeader() {
                             ) : null}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate text-sm text-white">{movie.title}</p>
+                            <p className="truncate text-sm text-white">
+                              {movie.title}
+                            </p>
                             <p className="text-[11px] text-white/50">
-                              {movie.release_year ? movie.release_year : "Chua ro"}
+                              {movie.release_year
+                                ? movie.release_year
+                                : "Chưa rõ"}
                             </p>
                           </div>
                         </Link>
@@ -480,7 +500,7 @@ export default function SiteHeader() {
                   onClick={() => setIsMenuOpen(false)}
                   className="rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white"
                 >
-                  Dang nhap
+                  Đăng nhập
                 </Link>
               )}
             </div>
