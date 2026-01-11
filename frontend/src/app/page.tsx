@@ -161,6 +161,14 @@ const formatTime = (value: string | null) => {
 const pickScheduleTime = (episode: ApiEpisode) =>
   episode.live_start_at || episode.released_at || episode.created_at;
 
+const stripHtml = (value: string | null | undefined) =>
+  (value || "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .trim();
+
 export default async function Home() {
   const [latestMovies, topRatedMovies, latestEpisodes, scheduleEpisodes] =
     await Promise.all([
@@ -232,8 +240,9 @@ export default async function Home() {
                 <h1 className="font-display text-4xl font-semibold leading-tight md:text-5xl">
                   {featured?.title || "Chưa có phim nổi bật"}
                 </h1>
-                <p className="max-w-xl text-sm text-white/70">
-                  {featured?.description || "Đang cập nhật nội dung phim."}
+                <p className="max-w-xl text-sm text-white/70 line-clamp-3">
+                  {stripHtml(featured?.description) ||
+                    "Đang cập nhật nội dung phim."}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

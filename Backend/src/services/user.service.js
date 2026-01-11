@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 const listUsers = async (limit = 50) => {
   const [rows] = await pool.query(
-    `SELECT id, name, email, role, status, created_at
+    `SELECT id, name, email, role, status, created_at, xp
      FROM users
      ORDER BY created_at DESC
      LIMIT ?`,
@@ -22,7 +22,7 @@ const findUserByEmail = async (email) => {
 const findUserById = async (id) => {
   const [rows] = await pool.query(
     `SELECT id, name, display_name, avatar_url, bio, gender, birth_date,
-            email, role, status, created_at
+            email, role, status, created_at, xp
      FROM users
      WHERE id = ? LIMIT 1`,
     [id]
@@ -45,7 +45,7 @@ const updateUserProfile = async ({
   avatarUrl,
   bio,
   gender,
-  birthDate
+  birthDate,
 }) => {
   await pool.query(
     `UPDATE users
@@ -58,7 +58,7 @@ const updateUserProfile = async ({
       bio || null,
       gender || null,
       birthDate || null,
-      userId
+      userId,
     ]
   );
 };
@@ -70,7 +70,7 @@ const updateUserEmail = async ({ userId, email }) => {
 const updateUserPassword = async ({ userId, passwordHash }) => {
   await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [
     passwordHash,
-    userId
+    userId,
   ]);
 };
 
@@ -93,6 +93,24 @@ const getUserStats = async () => {
   return rows[0] || { total: 0, active: 0, disabled: 0 };
 };
 
+const updateUserXp = async (userId, points) => {
+  await pool.query("UPDATE users SET xp = xp + ? WHERE id = ?", [
+    points,
+    userId,
+  ]);
+};
+
+const getLeaderboard = async (limit = 10) => {
+  const [rows] = await pool.query(
+    `SELECT id, name, display_name, avatar_url, xp, role
+     FROM users
+     ORDER BY xp DESC
+     LIMIT ?`,
+    [limit]
+  );
+  return rows;
+};
+
 module.exports = {
   listUsers,
   findUserByEmail,
@@ -102,5 +120,8 @@ module.exports = {
   findUserAuthById,
   updateUserProfile,
   updateUserEmail,
-  updateUserPassword
+  updateUserEmail,
+  updateUserPassword,
+  updateUserXp,
+  getLeaderboard,
 };

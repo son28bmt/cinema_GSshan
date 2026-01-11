@@ -88,6 +88,14 @@ const Spinner = ({ label }: { label?: string }) => (
   </div>
 );
 
+const stripHtml = (value: string | null | undefined) =>
+  (value || "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .trim();
+
 export default function AdminEpisodesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
@@ -160,7 +168,9 @@ export default function AdminEpisodesPage() {
           if (serverRows.length === 0) {
             return "";
           }
-          const exists = serverRows.some((server) => String(server.id) === current);
+          const exists = serverRows.some(
+            (server) => String(server.id) === current
+          );
           return exists ? current : String(serverRows[0].id);
         });
       } catch (err) {
@@ -629,8 +639,8 @@ export default function AdminEpisodesPage() {
                               {server.status === "maintenance"
                                 ? " (Bảo trì)"
                                 : server.status === "disabled"
-                                  ? " (Dừng)"
-                                  : ""}
+                                ? " (Dừng)"
+                                : ""}
                             </option>
                           ))
                         )}

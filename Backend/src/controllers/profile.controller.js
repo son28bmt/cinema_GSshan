@@ -14,7 +14,7 @@ const getProfileSummary = async (req, res, next) => {
       profileService.getStats(req.user.id),
       favoriteService.listFavorites(req.user.id),
       profileService.listWatchHistory(req.user.id, 8),
-      profileService.getSettings(req.user.id)
+      profileService.getSettings(req.user.id),
     ]);
 
     return res.status(200).json({ user, stats, favorites, history, settings });
@@ -23,9 +23,15 @@ const getProfileSummary = async (req, res, next) => {
   }
 };
 
+const { containsReservedWord } = require("../utils/validation");
+
 const updateProfile = async (req, res, next) => {
   try {
     const { name, displayName, avatarUrl, bio, gender, birthDate } = req.body;
+
+    if (containsReservedWord(name) || containsReservedWord(displayName)) {
+      return res.status(400).json({ message: "Tên hiển thị không hợp lệ" });
+    }
 
     await userService.updateUserProfile({
       userId: req.user.id,
@@ -34,7 +40,7 @@ const updateProfile = async (req, res, next) => {
       avatarUrl,
       bio,
       gender,
-      birthDate
+      birthDate,
     });
 
     const user = await userService.findUserById(req.user.id);
@@ -48,7 +54,9 @@ const updateEmail = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     const existing = await userService.findUserByEmail(email);
@@ -81,7 +89,7 @@ const updateSettings = async (req, res, next) => {
     const settings = await profileService.updateSettings(req.user.id, {
       notifyNewMovies,
       notifyNewEpisodes,
-      marketingEmails
+      marketingEmails,
     });
 
     return res.status(200).json({ settings });
@@ -94,7 +102,9 @@ const changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "Current and new password are required" });
+      return res
+        .status(400)
+        .json({ message: "Cần nhập mật khẩu hiện tại và mật khẩu mới." });
     }
 
     const authUser = await userService.findUserAuthById(req.user.id);
@@ -102,7 +112,10 @@ const changePassword = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const match = await comparePassword(currentPassword, authUser.password_hash);
+    const match = await comparePassword(
+      currentPassword,
+      authUser.password_hash
+    );
     if (!match) {
       return res.status(401).json({ message: "Invalid password" });
     }
@@ -134,13 +147,16 @@ const recordWatchHistory = async (req, res, next) => {
     }
 
     const parsedEpisodeId = episodeId ? Number.parseInt(episodeId, 10) : null;
-    const parsedWatchSeconds = watchSeconds ? Number.parseInt(watchSeconds, 10) : 0;
+    const parsedWatchSeconds = watchSeconds
+      ? Number.parseInt(watchSeconds, 10)
+      : 0;
 
     await profileService.recordWatchHistory({
       userId: req.user.id,
       movieId: parsedMovieId,
       episodeId: parsedEpisodeId,
-      watchSeconds: parsedWatchSeconds
+      watchSeconds: parsedWatchSeconds,
+      isProgressUpdate: Boolean(req.body.isProgressUpdate),
     });
 
     return res.status(201).json({ message: "Recorded" });
@@ -156,5 +172,5 @@ module.exports = {
   updateSettings,
   changePassword,
   listDevices,
-  recordWatchHistory
+  recordWatchHistory,
 };

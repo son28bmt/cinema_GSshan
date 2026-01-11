@@ -32,6 +32,9 @@ const listComments = async ({ limit = 20, movieId, episodeId, status }) => {
       c.author_ip,
       COALESCE(u.name, c.author_name, 'Khach') AS author_name,
       u.email AS author_email,
+      u.xp AS author_xp,
+      u.avatar_url AS author_avatar,
+      u.role AS author_role,
       m.title AS movie_title,
       m.slug AS movie_slug,
       e.episode_number AS episode_number
@@ -83,6 +86,9 @@ const createComment = async ({
       c.author_ip,
       COALESCE(u.name, c.author_name, 'Khach') AS author_name,
       u.email AS author_email,
+      u.xp AS author_xp,
+      u.avatar_url AS author_avatar,
+      u.role AS author_role,
       m.title AS movie_title,
       m.slug AS movie_slug,
       e.episode_number AS episode_number
@@ -132,6 +138,9 @@ const reportComment = async ({ commentId, reason }) => {
       c.author_ip,
       COALESCE(u.name, c.author_name, 'Khach') AS author_name,
       u.email AS author_email,
+      u.xp AS author_xp,
+      u.avatar_url AS author_avatar,
+      u.role AS author_role,
       m.title AS movie_title,
       m.slug AS movie_slug,
       e.episode_number AS episode_number
@@ -156,21 +165,50 @@ const getCommentStats = async () => {
       SUM(status = 'pinned') AS pinned
      FROM comments`
   );
-  return rows[0] || {
-    total: 0,
-    pending: 0,
-    approved: 0,
-    reported: 0,
-    pinned: 0
-  };
+  return (
+    rows[0] || {
+      total: 0,
+      pending: 0,
+      approved: 0,
+      reported: 0,
+      pinned: 0,
+    }
+  );
 };
 
 const deleteComment = async (id) => {
-  const [result] = await pool.query(
-    "DELETE FROM comments WHERE id = ?",
-    [id]
-  );
+  const [result] = await pool.query("DELETE FROM comments WHERE id = ?", [id]);
   return result.affectedRows > 0;
+};
+
+const hasCommentedOn = async (userId, movieId, episodeId) => {
+  const filters = ["user_id = ?"];
+  const params = [userId];
+
+  if (movieId) {
+    filters.push("movie_id = ?");
+    params.push(movieId);
+  }
+  if (episodeId) {
+    filters.push("episode_id = ?");
+    params.push(episodeId);
+  }
+
+  const query = `SELECT id FROM comments WHERE ${filters.join(
+    " AND "
+  )} LIMIT 1`;
+  const [rows] = await pool.query(query, params);
+  return rows.length > 0;
+};
+
+const getLastGeneralCommentTime = async (userId) => {
+  const [rows] = await pool.query(
+    `SELECT created_at FROM comments 
+     WHERE user_id = ? AND movie_id IS NULL AND episode_id IS NULL 
+     ORDER BY created_at DESC LIMIT 1`,
+    [userId]
+  );
+  return rows[0] ? new Date(rows[0].created_at) : null;
 };
 
 module.exports = {
@@ -179,5 +217,7 @@ module.exports = {
   getCommentStats,
   deleteComment,
   findCommentById,
-  reportComment
+  reportComment,
+  hasCommentedOn,
+  getLastGeneralCommentTime,
 };

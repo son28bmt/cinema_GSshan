@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { calculateLevel } from "@/utils/level";
 import SectionHeading from "../../components/section-heading";
 import SiteFooter from "../../components/site-footer";
 import SiteHeader from "../../components/site-header";
@@ -27,6 +28,9 @@ type Comment = {
   report_reason?: string | null;
   author_name: string;
   author_email: string | null;
+  author_avatar?: string | null;
+  author_role?: string | null;
+  author_xp?: number;
   movie_title: string | null;
   movie_slug?: string | null;
   movie_id?: number | null;
@@ -149,11 +153,7 @@ export default function CommunityPage() {
       setFeedback("Bạn cần đăng nhập để bình luận.");
       return;
     }
-    if (!selectedMovieId) {
-      setFeedback("Vui lòng chọn phim để bình luận.");
-      return;
-    }
-
+    // General comments allowed
     setSendingComment(true);
     setFeedback("");
 
@@ -165,7 +165,7 @@ export default function CommunityPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          movieId: selectedMovieId,
+          movieId: selectedMovieId || null,
           content: commentText.trim(),
         }),
       });
@@ -295,10 +295,45 @@ export default function CommunityPage() {
         >
           <div className="flex flex-wrap items-start justify-between gap-3 text-xs text-white/50">
             <div>
-              <p className="text-sm font-semibold text-white">
-                {comment.author_name}
-              </p>
-              <p>{comment.author_email || "ẩn danh"}</p>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 overflow-hidden rounded-full border border-white/10 bg-white/10">
+                  {comment.author_avatar ? (
+                    <img
+                      src={comment.author_avatar}
+                      alt={comment.author_name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-[var(--accent)] text-[10px] font-bold text-white">
+                      {comment.author_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p
+                      className={`text-sm font-semibold ${
+                        comment.author_role === "admin"
+                          ? "!text-red-500"
+                          : "text-white"
+                      }`}
+                      style={{
+                        color:
+                          comment.author_role === "admin"
+                            ? "#ef4444"
+                            : undefined,
+                      }}
+                    >
+                      {comment.author_name}
+                    </p>
+                    <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      {comment.author_role === "admin"
+                        ? "Trùm cuối"
+                        : `LV.${calculateLevel(comment.author_xp || 0)}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
               {comment.movie_title ? (
                 <p className="text-[11px] text-white/50">
                   {comment.movie_slug ? (
@@ -473,7 +508,7 @@ export default function CommunityPage() {
                       )
                     }
                   >
-                    <option value="">Chọn phim để thảo luận</option>
+                    <option value="">Thảo luận chung</option>
                     {movies.map((movie) => (
                       <option key={movie.id} value={movie.id}>
                         {movie.title}

@@ -5,12 +5,18 @@ const profileService = require("../services/profile.service");
 
 const crypto = require("crypto");
 
+const { containsReservedWord } = require("../utils/validation");
+
 const register = async (req, res, next) => {
   try {
     const { email, password, name } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ message: "Nhập Email và Password" });
+    }
+
+    if (containsReservedWord(name)) {
+      return res.status(400).json({ message: "Tên không hợp lệ" });
     }
 
     const existing = await userService.findUserByEmail(email);
@@ -160,11 +166,9 @@ const loginWithFacebook = async (req, res, next) => {
     // Facebook might not return email if user didn't grant permission or signed up with phone
     // For simplicity, we require email. In a real app, you might handle phone-only users differently.
     if (!email) {
-      return res
-        .status(400)
-        .json({
-          message: "Facebook account has no email or permission denied",
-        });
+      return res.status(400).json({
+        message: "Facebook account has no email or permission denied",
+      });
     }
 
     let user = await userService.findUserByEmail(email);

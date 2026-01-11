@@ -29,12 +29,6 @@ type Genre = {
   movie_count?: number;
 };
 
-type Comment = {
-  id: number;
-  author_name: string;
-  author_email: string | null;
-};
-
 const stripHtml = (value: string | null | undefined) =>
   (value || "")
     .replace(/<[^>]*>/g, "")
@@ -68,7 +62,7 @@ export default function RankingsPage() {
   const [mode, setMode] = useState<RankingMode>("views");
   const [movies, setMovies] = useState<ApiMovie[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [topUsers, setTopUsers] = useState<any[]>([]);
   const [topWatchHref, setTopWatchHref] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -78,12 +72,14 @@ export default function RankingsPage() {
       setLoading(true);
       setError("");
       try {
-        const [movieRes, genreRes, commentRes] = await Promise.all([
+        const [movieRes, genreRes, userRes] = await Promise.all([
           fetch(`${API_URL}/api/movies?sort=${mode}&limit=8`, {
             cache: "no-store",
           }),
           fetch(`${API_URL}/api/genres?includeCounts=1`, { cache: "no-store" }),
-          fetch(`${API_URL}/api/comments?limit=3`, { cache: "no-store" }),
+          fetch(`${API_URL}/api/users/leaderboard?limit=5`, {
+            cache: "no-store",
+          }),
         ]);
 
         if (movieRes.ok) {
@@ -94,9 +90,9 @@ export default function RankingsPage() {
           const genreData = await genreRes.json();
           setGenres(genreData.genres || []);
         }
-        if (commentRes.ok) {
-          const commentData = await commentRes.json();
-          setComments(commentData.comments || []);
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setTopUsers(userData.users || []);
         }
       } catch (err) {
         setError("Không thể kết nối dữ liệu.");
@@ -362,35 +358,53 @@ export default function RankingsPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-4 sm:p-6 overflow-x-auto">
-              <h3 className="text-sm font-semibold">Top bình luận</h3>
+              <h3 className="text-sm font-semibold">Top Thành viên</h3>
               <div className="mt-4 space-y-3">
-                {comments.length === 0 ? (
-                  <p className="text-xs text-white/50">Chưa có bình luận.</p>
+                {topUsers.length === 0 ? (
+                  <p className="text-xs text-white/50">Chưa có dữ liệu.</p>
                 ) : (
-                  comments.map((comment) => (
+                  topUsers.map((user, index) => (
                     <div
-                      key={comment.id}
+                      key={user.id}
                       className="flex flex-wrap items-center justify-between gap-3"
                     >
-                      <div>
-                        <p className="text-sm">{comment.author_name}</p>
-                        <p className="text-xs text-white/50">
-                          @
-                          {comment.author_name
-                            .toLowerCase()
-                            .replace(/\s+/g, "")}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p
+                            className={`text-sm ${
+                              user.role === "admin"
+                                ? "!text-red-500 font-bold"
+                                : ""
+                            }`}
+                            style={{
+                              color:
+                                user.role === "admin" ? "#ef4444" : undefined,
+                            }}
+                          >
+                            {user.name || user.display_name || "User"}
+                          </p>
+                          <p className="text-[10px] text-white/50">
+                            {user.email
+                              ? user.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")
+                              : "---"}
+                          </p>
+                        </div>
                       </div>
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] text-white/60">
-                        LV. {comment.id}
+                      <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-[10px] text-white">
+                        {user.role === "admin"
+                          ? "Trùm cuối"
+                          : `LV. ${Math.floor((user.xp || 0) / 100) + 1}`}
                       </span>
                     </div>
                   ))
                 )}
               </div>
-              <button className="mt-4 w-full rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/70">
-                Tham gia thảo luận
-              </button>
+              <p className="mt-4 text-center text-[10px] text-white/40">
+                Tích cực hoạt động để leo rank!
+              </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[var(--panel-2)] p-6 text-center">

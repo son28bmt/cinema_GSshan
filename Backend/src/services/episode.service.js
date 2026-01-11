@@ -127,7 +127,22 @@ const getEpisodeById = async (episodeId) => {
     LIMIT 1`,
     [episodeId]
   );
-  return rows[0];
+
+  const episode = rows[0];
+  if (episode) {
+    const isPremiere = Boolean(episode.is_premiere);
+    const liveStartAt = episode.live_start_at
+      ? new Date(episode.live_start_at).getTime()
+      : null;
+    const now = Date.now();
+
+    // Mask video_url if it's a premiere and time hasn't arrived
+    if (isPremiere && liveStartAt && now < liveStartAt) {
+      episode.video_url = null;
+    }
+  }
+
+  return episode;
 };
 
 const createEpisode = async ({
@@ -210,10 +225,25 @@ const updateEpisode = async (
 };
 
 const deleteEpisode = async (episodeId) => {
-  const [result] = await pool.query(`DELETE FROM episodes WHERE id = ?`, [
+  // Manual cascade delete because FKs might not be set to CASCADE
+  await pool.query("DELETE FROM comments WHERE episode_id = ?", [episodeId]);
+  await pool.query("DELETE FROM watch_history WHERE episode_id = ?", [
     episodeId,
   ]);
-  return result.affectedRows > 0;
+  await pool.query(
+    "DELETE FROM user_notifications WHERE notification_id IN (SELECT id FROM notifications WHERE type = 'episode_release' AND message LIKE ?)",
+    [`%link_to_episode_${episodeId}%`]
+  ); // This is tricky without a direct link, but standard Cascade usually handles notifications if they are linked.
+  // Simplify: just handle direct FKs first.
+
+  await pool.query("DELETE FROM episodes WHERE id = ?", [episodeId]);
+  return true;
+};
+
+const incrementViews = async (episodeId) => {
+  await pool.query("UPDATE episodes SET views = views + 1 WHERE id = ?", [
+    episodeId,
+  ]);
 };
 
 module.exports = {
@@ -224,4 +254,5 @@ module.exports = {
   createEpisode,
   updateEpisode,
   deleteEpisode,
+  incrementViews,
 };

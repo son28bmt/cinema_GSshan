@@ -1,5 +1,6 @@
 const episodeService = require("../services/episode.service");
 const notificationService = require("../services/notification.service");
+const userService = require("../services/user.service");
 
 const listEpisodes = async (req, res, next) => {
   try {
@@ -41,6 +42,9 @@ const listScheduleEpisodes = async (req, res, next) => {
   }
 };
 
+// ...
+// ...
+
 const getEpisodeById = async (req, res, next) => {
   try {
     const episodeId = Number.parseInt(req.params.id, 10);
@@ -51,6 +55,16 @@ const getEpisodeById = async (req, res, next) => {
     const episode = await episodeService.getEpisodeById(episodeId);
     if (!episode) {
       return res.status(404).json({ message: "Episode not found" });
+    }
+
+    // Increment view count (fire and forget)
+    episodeService.incrementViews(episodeId).catch((err) => {
+      console.error(`Failed to increment views for episode ${episodeId}:`, err);
+    });
+
+    // Award XP if user is logged in
+    if (req.user && req.user.id) {
+      userService.updateUserXp(req.user.id, 10).catch(() => {});
     }
 
     return res.status(200).json({ episode });

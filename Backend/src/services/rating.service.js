@@ -9,6 +9,13 @@ const upsertRating = async ({ userId, movieId, rating }) => {
   );
 };
 
+const deleteRating = async ({ userId, movieId }) => {
+  await pool.query("DELETE FROM ratings WHERE user_id = ? AND movie_id = ?", [
+    userId,
+    movieId,
+  ]);
+};
+
 const getRatingSummary = async (movieId) => {
   const [rows] = await pool.query(
     `SELECT
@@ -33,11 +40,12 @@ const getRatingSummary = async (movieId) => {
       3: Number(row.count3 || 0),
       2: Number(row.count2 || 0),
       1: Number(row.count1 || 0),
-    }
+    },
   };
 };
 
 module.exports = {
   upsertRating,
-  getRatingSummary
+  deleteRating,
+  getRatingSummary,
 };

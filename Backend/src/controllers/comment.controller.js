@@ -1,10 +1,13 @@
 ﻿const commentService = require("../services/comment.service");
 const userService = require("../services/user.service");
+const episodeService = require("../services/episode.service");
 
 const listComments = async (req, res, next) => {
   try {
     const limit = Number.parseInt(req.query.limit || "20", 10);
-    const movieId = req.query.movieId ? Number.parseInt(req.query.movieId, 10) : null;
+    const movieId = req.query.movieId
+      ? Number.parseInt(req.query.movieId, 10)
+      : null;
     const episodeId = req.query.episodeId
       ? Number.parseInt(req.query.episodeId, 10)
       : null;
@@ -38,9 +41,7 @@ const createComment = async (req, res, next) => {
     if (!content || !content.trim()) {
       return res.status(400).json({ message: "Content is required" });
     }
-    if (!parsedMovieId && !parsedEpisodeId) {
-      return res.status(400).json({ message: "movieId or episodeId is required" });
-    }
+    // General comments don't need movieId or episodeId
 
     if (parsedParentId) {
       const parent = await commentService.findCommentById(parsedParentId);
@@ -48,7 +49,8 @@ const createComment = async (req, res, next) => {
         return res.status(404).json({ message: "Parent comment not found" });
       }
       const sameMovie = parsedMovieId && parent.movie_id === parsedMovieId;
-      const sameEpisode = parsedEpisodeId && parent.episode_id === parsedEpisodeId;
+      const sameEpisode =
+        parsedEpisodeId && parent.episode_id === parsedEpisodeId;
       if (!sameMovie && !sameEpisode) {
         return res.status(400).json({ message: "Parent comment mismatch" });
       }
@@ -56,8 +58,36 @@ const createComment = async (req, res, next) => {
 
     const user = await userService.findUserById(req.user.id);
     const authorName =
-      user?.name ||
-      (user?.email ? user.email.split("@")[0] : "User");
+      user?.name || (user?.email ? user.email.split("@")[0] : "User");
+
+    // Check for XP Eligibility BEFORE creating the comment (to exclude the one we are about to create)
+    let shouldAwardXp = false;
+
+    if (parsedMovieId || parsedEpisodeId) {
+      // Logic: One time per movie/episode
+      const hasCommented = await commentService.hasCommentedOn(
+        req.user.id,
+        parsedMovieId,
+        parsedEpisodeId
+      );
+      if (!hasCommented) {
+        shouldAwardXp = true;
+      }
+    } else {
+      // Logic: General comment -> Cooldown 10 minutes
+      const lastCommentTime = await commentService.getLastGeneralCommentTime(
+        req.user.id
+      );
+      if (!lastCommentTime) {
+        shouldAwardXp = true;
+      } else {
+        const diffMinutes = (new Date() - lastCommentTime) / 1000 / 60;
+        if (diffMinutes >= 10) {
+          // 10 minutes cooldown
+          shouldAwardXp = true;
+        }
+      }
+    }
 
     const comment = await commentService.createComment({
       userId: req.user.id,
@@ -68,6 +98,11 @@ const createComment = async (req, res, next) => {
       authorName,
       authorIp: req.ip,
     });
+
+    // Award 15 XP if eligible
+    if (shouldAwardXp) {
+      await userService.updateUserXp(req.user.id, 15);
+    }
 
     return res.status(201).json({ comment });
   } catch (err) {

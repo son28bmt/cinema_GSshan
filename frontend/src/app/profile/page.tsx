@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import {
+  calculateLevel,
+  calculateNextLevelProgress,
+  getXpForNextLevel,
+} from "@/utils/level";
 import MovieCard from "../../components/movie-card";
 import SectionHeading from "../../components/section-heading";
 import SiteFooter from "../../components/site-footer";
@@ -19,6 +24,7 @@ type UserProfile = {
   role?: "user" | "admin" | string;
   status?: string;
   created_at?: string;
+  xp?: number;
 };
 
 type ProfileStats = {
@@ -142,16 +148,38 @@ export default function ProfilePage() {
                 <div className="h-16 w-16 rounded-2xl border border-white/10 bg-white/5" />
               )}
               <div>
-                <h2 className="font-display text-xl font-semibold">
+                <h2
+                  className={`font-display text-xl font-semibold ${
+                    user?.role === "admin" ? "!text-red-500" : ""
+                  }`}
+                  style={{
+                    color: user?.role === "admin" ? "#ef4444" : undefined,
+                  }}
+                >
                   {loading ? "Đang tải..." : displayName}
                 </h2>
                 <p className="text-xs text-white/60">
                   {loading ? "" : `${roleLabel} - Tham gia từ ${joinYear}`}
                 </p>
                 <p className="mt-2 text-xs text-white/50">
-                  {user?.bio ||
-                    "tiểu sử cá nhân chưa được cập nhật."}
+                  {user?.bio || "tiểu sử cá nhân chưa được cập nhật."}
                 </p>
+                <div className="mt-3 w-full max-w-[200px]">
+                  <div className="flex items-center justify-between text-[10px] text-white/70">
+                    <span>Cấp độ {calculateLevel(user?.xp || 0)}</span>
+                    <span>
+                      {user?.xp || 0} / {getXpForNextLevel(user?.xp || 0)} XP
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full bg-[var(--accent)] transition-all duration-500"
+                      style={{
+                        width: `${calculateNextLevelProgress(user?.xp || 0)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -179,7 +207,7 @@ export default function ProfilePage() {
           {!loading && !user && !error ? (
             <div className="mt-4 rounded-2xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-xs text-yellow-100">
               Bạn chưa đăng nhập. Vui lòng
-              <Link  href="/login" className="ml-1 text-white underline">
+              <Link href="/login" className="ml-1 text-white underline">
                 đăng nhập
               </Link>
               .
@@ -188,9 +216,9 @@ export default function ProfilePage() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {statItems.map((stat) => (
+          {statItems.map((stat, index) => (
             <div
-              key={stat.label}
+              key={`${stat.label}-${index}`}
               className="rounded-2xl border border-white/10 bg-white/5 p-4"
             >
               <p className="text-xs text-white/50">{stat.label}</p>
@@ -217,7 +245,9 @@ export default function ProfilePage() {
               <MovieCard
                 key={movie.id}
                 title={movie.title}
-                subtitle={movie.release_year ? `${movie.release_year}` : "Chưa rõ"}
+                subtitle={
+                  movie.release_year ? `${movie.release_year}` : "Chưa rõ"
+                }
                 cover={movie.poster_url || undefined}
                 href={`/movies/${movie.slug}`}
               />

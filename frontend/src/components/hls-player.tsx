@@ -1,16 +1,53 @@
 "use client";
-// import { cn } from "@/lib/utils"
 import Hls from "hls.js";
 import { useEffect, useRef } from "react";
-
 type HlsPlayerProps = {
   src?: string | null;
   poster?: string;
   className?: string;
+  movieId?: number;
+  episodeId?: number;
 };
 
-export default function HlsPlayer({ src, poster, className }: HlsPlayerProps) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+export default function HlsPlayer({
+  src,
+  poster,
+  className,
+  movieId,
+  episodeId,
+}: HlsPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Sync watch history
+  useEffect(() => {
+    if (!movieId) return;
+
+    const interval = setInterval(() => {
+      const video = videoRef.current;
+      if (!video || video.paused || video.currentTime < 5) return;
+
+      const token = localStorage.getItem("cinema_token");
+      if (!token) return;
+
+      fetch(`${API_URL}/api/profile/history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          movieId,
+          episodeId,
+          watchSeconds: Math.floor(video.currentTime),
+          isProgressUpdate: true,
+        }),
+      }).catch(() => {});
+    }, 10000); // Update every 10s
+
+    return () => clearInterval(interval);
+  }, [movieId, episodeId]);
 
   useEffect(() => {
     const video = videoRef.current;

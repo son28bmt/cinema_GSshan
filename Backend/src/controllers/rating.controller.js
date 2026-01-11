@@ -22,15 +22,24 @@ const setRating = async (req, res, next) => {
     if (Number.isNaN(parsedMovieId)) {
       return res.status(400).json({ message: "movieId is required" });
     }
-    if (Number.isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
-      return res.status(400).json({ message: "rating must be between 1 and 5" });
+    if (Number.isNaN(parsedRating) || parsedRating < 0 || parsedRating > 5) {
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5 (or 0 to remove)" });
     }
 
-    await ratingService.upsertRating({
-      userId: req.user.id,
-      movieId: parsedMovieId,
-      rating: parsedRating
-    });
+    if (parsedRating === 0) {
+      await ratingService.deleteRating({
+        userId: req.user.id,
+        movieId: parsedMovieId,
+      });
+    } else {
+      await ratingService.upsertRating({
+        userId: req.user.id,
+        movieId: parsedMovieId,
+        rating: parsedRating,
+      });
+    }
 
     const summary = await ratingService.getRatingSummary(parsedMovieId);
     return res.status(200).json({ summary });
@@ -41,5 +50,5 @@ const setRating = async (req, res, next) => {
 
 module.exports = {
   getRatingSummary,
-  setRating
+  setRating,
 };

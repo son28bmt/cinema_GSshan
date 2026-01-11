@@ -1,7 +1,9 @@
 const pool = require("../config/db");
 
 const ensureSettings = async (userId) => {
-  await pool.query("INSERT IGNORE INTO user_settings (user_id) VALUES (?)", [userId]);
+  await pool.query("INSERT IGNORE INTO user_settings (user_id) VALUES (?)", [
+    userId,
+  ]);
 };
 
 const getSettings = async (userId) => {
@@ -28,7 +30,7 @@ const updateSettings = async (
       notifyNewMovies ? 1 : 0,
       notifyNewEpisodes ? 1 : 0,
       marketingEmails ? 1 : 0,
-      userId
+      userId,
     ]
   );
   return getSettings(userId);
@@ -55,28 +57,26 @@ const getStats = async (userId) => {
     movies_watched: Number(historyRow?.movies_watched || 0),
     watch_hours: Number(historyRow?.watch_seconds || 0) / 3600,
     ratings_count: Number(ratingsRow?.total || 0),
-    favorites_count: Number(favoritesRow?.total || 0)
+    favorites_count: Number(favoritesRow?.total || 0),
   };
 };
 
 const listWatchHistory = async (userId, limit = 6) => {
   const [rows] = await pool.query(
     `SELECT
-      h.id,
-      h.movie_id,
-      h.episode_id,
-      h.watch_seconds,
-      h.watched_at,
+      m.id AS movie_id,
       m.title,
       m.slug,
       m.poster_url,
       m.release_year,
-      e.episode_number
+      MAX(h.watched_at) as watched_at,
+      MAX(h.episode_id) as last_episode_id,
+      (SELECT episode_number FROM episodes WHERE id = MAX(h.episode_id)) as episode_number
      FROM watch_history h
      JOIN movies m ON m.id = h.movie_id
-     LEFT JOIN episodes e ON e.id = h.episode_id
      WHERE h.user_id = ?
-     ORDER BY h.watched_at DESC
+     GROUP BY m.id, m.title, m.slug, m.poster_url, m.release_year
+     ORDER BY watched_at DESC
      LIMIT ?`,
     [userId, limit]
   );
@@ -87,13 +87,13 @@ const recordWatchHistory = async ({
   userId,
   movieId,
   episodeId,
-  watchSeconds = 0
+  watchSeconds = 0,
+  isProgressUpdate = false,
 }) => {
-  if (episodeId) {
-    await pool.query(
-      "UPDATE episodes SET views = views + 1 WHERE id = ?",
-      [episodeId]
-    );
+  if (episodeId && !isProgressUpdate) {
+    await pool.query("UPDATE episodes SET views = views + 1 WHERE id = ?", [
+      episodeId,
+    ]);
   }
   const [result] = await pool.query(
     `INSERT INTO watch_history (user_id, movie_id, episode_id, watch_seconds)
@@ -134,5 +134,5 @@ module.exports = {
   listWatchHistory,
   recordWatchHistory,
   listDevices,
-  recordDevice
+  recordDevice,
 };

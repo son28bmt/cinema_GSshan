@@ -5,12 +5,23 @@ const listUsers = async (req, res, next) => {
     const limit = Number.parseInt(req.query.limit || "50", 10);
     const users = await userService.listUsers(Number.isNaN(limit) ? 50 : limit);
     const stats = await userService.getUserStats();
-    return res.status(200).json({ users, stats });
+    return res.status(200).json({ stats });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+const getLeaderboard = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const users = await userService.getLeaderboard(limit);
+    return res.status(200).json({ users });
   } catch (err) {
     return next(err);
   }
 };
 
 module.exports = {
-  listUsers
+  listUsers,
+  getLeaderboard,
 };

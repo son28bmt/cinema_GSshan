@@ -16,6 +16,7 @@ const reportReasons = [
 type Comment = {
   id: number;
   author_name: string;
+  author_role?: string;
   author_email: string | null;
   content: string;
   status: string;
@@ -246,8 +247,23 @@ export default function EpisodeComments({
         >
           <div className="flex items-center justify-between text-xs text-white/50">
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-white">
+              <p
+                className={`text-sm font-semibold ${
+                  comment.author_role === "admin"
+                    ? "!text-red-500"
+                    : "text-white"
+                }`}
+                style={{
+                  color:
+                    comment.author_role === "admin" ? "#ef4444" : undefined,
+                }}
+              >
                 {comment.author_name}
+                {comment.author_role === "admin" && (
+                  <span className="ml-2 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-bold text-white">
+                    Trùm cuối
+                  </span>
+                )}
               </p>
               <p>{comment.author_email || "Ẩn danh"}</p>
             </div>

@@ -76,7 +76,9 @@ export default function EditProfilePage() {
     setAvatarFile(file);
     const reader = new FileReader();
     reader.onload = () => {
-      setAvatarPreview(typeof reader.result === "string" ? reader.result : null);
+      setAvatarPreview(
+        typeof reader.result === "string" ? reader.result : null
+      );
     };
     reader.readAsDataURL(file);
   };
@@ -84,6 +86,32 @@ export default function EditProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     setError(null);
+
+    const reservedNames = [
+      "admin",
+      "administrator",
+      "quản trị viên",
+      "quan tri vien",
+      "mod",
+      "moderator",
+      "superadmin",
+      "root",
+      "system",
+      "hệ thống",
+    ];
+
+    const checkName = (text: string) => {
+      const lower = text.toLowerCase();
+      return reservedNames.some((word) => lower.includes(word));
+    };
+
+    if (checkName(fullName) || checkName(displayName)) {
+      setError(
+        "Tên hoặc tên hiển thị chứa từ khóa không hợp lệ (Admin, Mod...)"
+      );
+      setSaving(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem("cinema_token");
@@ -136,7 +164,9 @@ export default function EditProfilePage() {
             Quay lại
           </button>
           <div>
-            <h1 className="text-xl font-semibold text-white">Chỉnh sửa hồ sơ</h1>
+            <h1 className="text-xl font-semibold text-white">
+              Chỉnh sửa hồ sơ
+            </h1>
             <p className="text-xs text-white/50">
               Quản lí thông tin cá nhân của bạn tại đây.
             </p>
@@ -268,5 +298,3 @@ export default function EditProfilePage() {
     </div>
   );
 }
-
-
