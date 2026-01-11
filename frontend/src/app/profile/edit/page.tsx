@@ -16,6 +16,7 @@ type UserProfile = {
   bio?: string | null;
   gender?: string | null;
   birth_date?: string | null;
+  role?: string;
 };
 
 export default function EditProfilePage() {
@@ -105,12 +106,14 @@ export default function EditProfilePage() {
       return reservedNames.some((word) => lower.includes(word));
     };
 
-    if (checkName(fullName) || checkName(displayName)) {
-      setError(
-        "Tên hoặc tên hiển thị chứa từ khóa không hợp lệ (Admin, Mod...)"
-      );
-      setSaving(false);
-      return;
+    if (user?.role !== "admin") {
+      if (checkName(fullName) || checkName(displayName)) {
+        setError(
+          "Tên hoặc tên hiển thị chứa từ khóa không hợp lệ (Admin, Mod...)"
+        );
+        setSaving(false);
+        return;
+      }
     }
 
     try {

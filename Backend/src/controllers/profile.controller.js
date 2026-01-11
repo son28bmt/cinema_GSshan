@@ -29,7 +29,10 @@ const updateProfile = async (req, res, next) => {
   try {
     const { name, displayName, avatarUrl, bio, gender, birthDate } = req.body;
 
-    if (containsReservedWord(name) || containsReservedWord(displayName)) {
+    if (
+      req.user.role !== "admin" &&
+      (containsReservedWord(name) || containsReservedWord(displayName))
+    ) {
       return res.status(400).json({ message: "Tên hiển thị không hợp lệ" });
     }
 
