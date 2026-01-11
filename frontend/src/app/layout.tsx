@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Sora } from "next/font/google";
 import "./globals.css";
+import { SystemPopup } from "@/components/system-popup";
 
 const bodyFont = Manrope({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({
         className={`${bodyFont.variable} ${displayFont.variable} min-h-screen bg-[var(--bg)] text-white antialiased`}
       >
         {children}
+        <SystemPopup />
       </body>
     </html>
   );

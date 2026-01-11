@@ -14,6 +14,7 @@ type NotificationItem = {
   target_user_id: number | null;
   target_user_email?: string | null;
   status: "sent" | "draft";
+  type: "normal" | "popup";
   created_at: string;
   created_by_email?: string | null;
 };
@@ -34,6 +35,7 @@ type Pagination = {
 type StatusFilter = "all" | "sent" | "draft";
 
 type AudienceType = "all" | "role" | "user";
+type NotificationType = "normal" | "popup";
 
 type SendStatus = "sent" | "draft";
 
@@ -73,6 +75,8 @@ export default function AdminNotificationsPage() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState<AudienceType>("all");
+  const [notificationType, setNotificationType] =
+    useState<NotificationType>("normal");
   const [targetRole, setTargetRole] = useState("user");
   const [targetEmail, setTargetEmail] = useState("");
   const [sendStatus, setSendStatus] = useState<SendStatus>("sent");
@@ -161,6 +165,7 @@ export default function AdminNotificationsPage() {
     setTitle("");
     setMessage("");
     setAudience("all");
+    setNotificationType("normal");
     setTargetRole("user");
     setTargetEmail("");
     setSendStatus("sent");
@@ -203,6 +208,7 @@ export default function AdminNotificationsPage() {
           title: title.trim(),
           message: message.trim(),
           audience,
+          type: notificationType,
           targetRole: audience === "role" ? targetRole : undefined,
           targetEmail: audience === "user" ? targetEmail.trim() : undefined,
           status: sendStatus,
@@ -479,6 +485,21 @@ export default function AdminNotificationsPage() {
                     <option value="all">Tất cả người dùng</option>
                     <option value="role">Theo vai trò</option>
                     <option value="user">Người dùng cụ thể</option>
+                  </select>
+                </label>
+                <label className="space-y-2 text-xs text-white/60">
+                  Loại thông báo
+                  <select
+                    className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
+                    value={notificationType}
+                    onChange={(event) =>
+                      setNotificationType(
+                        event.target.value as NotificationType
+                      )
+                    }
+                  >
+                    <option value="normal">Thường</option>
+                    <option value="popup">Popup (Giữa màn hình)</option>
                   </select>
                 </label>
                 <label className="space-y-2 text-xs text-white/60">

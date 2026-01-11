@@ -130,7 +130,7 @@ export default function AdminShell({ children }: AdminShellProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const requireAuth = () => {
     if (typeof window === "undefined") {
