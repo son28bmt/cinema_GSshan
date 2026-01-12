@@ -42,7 +42,16 @@ export default function AdminGenresPage() {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
+        const token = localStorage.getItem("cinema_token");
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${API_URL}/api/genres?includeCounts=1`, {
+          headers,
           cache: "no-store",
         });
         if (!response.ok) {
@@ -255,58 +264,62 @@ export default function AdminGenresPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
-          <div className="grid grid-cols-[0.6fr_1.1fr_1.1fr_1.7fr_0.6fr_0.7fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
-            <span>ID</span>
-            <span>Tên thể loại</span>
-            <span>Slug</span>
-            <span>Mô tả</span>
-            <span>Số phim</span>
-            <span>Hành động</span>
-          </div>
-          <div className="divide-y divide-white/5">
-            {loading ? (
-              <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
-                Đang tải dữ liệu...
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
+              <div className="grid grid-cols-[0.6fr_1.1fr_1.1fr_1.7fr_0.6fr_0.7fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
+                <span>ID</span>
+                <span>Tên thể loại</span>
+                <span>Slug</span>
+                <span>Mô tả</span>
+                <span>Số phim</span>
+                <span>Hành động</span>
               </div>
-            ) : paginatedGenres.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-white/60">
-                Chưa có thể loại nào.
-              </div>
-            ) : (
-              paginatedGenres.map((genre) => (
-                <div
-                  key={genre.id}
-                  className="grid grid-cols-[0.6fr_1.1fr_1.1fr_1.7fr_0.6fr_0.7fr] items-center px-4 py-4 text-sm"
-                >
-                  <span className="text-white/60">
-                    #{genre.id.toString().padStart(3, "0")}
-                  </span>
-                  <p className="font-semibold text-white">{genre.name}</p>
-                  <p className="text-xs text-white/60">{genre.slug}</p>
-                  <p className="text-xs text-white/60">
-                    {genre.description || "—"}
-                  </p>
-                  <span className="text-xs text-white/60">
-                    {genre.movie_count ?? 0}
-                  </span>
-                  <div className="flex items-center gap-2 text-xs">
-                    <button
-                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
-                      onClick={() => handleEdit(genre)}
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
-                      onClick={() => handleDelete(genre.id)}
-                    >
-                      Xóa
-                    </button>
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
+                    Đang tải dữ liệu...
                   </div>
-                </div>
-              ))
-            )}
+                ) : paginatedGenres.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    Chưa có thể loại nào.
+                  </div>
+                ) : (
+                  paginatedGenres.map((genre) => (
+                    <div
+                      key={genre.id}
+                      className="grid grid-cols-[0.6fr_1.1fr_1.1fr_1.7fr_0.6fr_0.7fr] items-center px-4 py-4 text-sm"
+                    >
+                      <span className="text-white/60">
+                        #{genre.id.toString().padStart(3, "0")}
+                      </span>
+                      <p className="font-semibold text-white">{genre.name}</p>
+                      <p className="text-xs text-white/60">{genre.slug}</p>
+                      <p className="text-xs text-white/60">
+                        {genre.description || "—"}
+                      </p>
+                      <span className="text-xs text-white/60">
+                        {genre.movie_count ?? 0}
+                      </span>
+                      <div className="flex items-center gap-2 text-xs">
+                        <button
+                          className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
+                          onClick={() => handleEdit(genre)}
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                          onClick={() => handleDelete(genre.id)}
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

@@ -54,7 +54,18 @@ export default function AdminServersPage() {
   useEffect(() => {
     const fetchServers = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/servers`, { cache: "no-store" });
+        const token = localStorage.getItem("cinema_token");
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_URL}/api/servers`, {
+          headers,
+          cache: "no-store",
+        });
         if (!response.ok) {
           setError("Không tải được dữ liệu server.");
           return;
@@ -164,7 +175,14 @@ export default function AdminServersPage() {
       <div className="rounded-2xl border border-white/5 bg-[#162333] p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-sm text-white/60">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden
+            >
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20L17 17" />
             </svg>
@@ -194,57 +212,70 @@ export default function AdminServersPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
-          <div className="grid grid-cols-[0.6fr_1fr_1.6fr_0.8fr_0.8fr_0.7fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
-            <span>ID</span>
-            <span>Tên server</span>
-            <span>Endpoint URL</span>
-            <span>Tải (Load)</span>
-            <span>Trạng thái</span>
-            <span>Hành động</span>
-          </div>
-          <div className="divide-y divide-white/5">
-            {loading ? (
-              <div className="px-4 py-6 text-sm text-white/60">Đang tải dữ liệu...</div>
-            ) : paginatedServers.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-white/60">
-                Chưa có server nào.
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
+              <div className="grid grid-cols-[0.6fr_1fr_1.6fr_0.8fr_0.8fr_0.7fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
+                <span>ID</span>
+                <span>Tên server</span>
+                <span>Endpoint URL</span>
+                <span>Tải (Load)</span>
+                <span>Trạng thái</span>
+                <span>Hành động</span>
               </div>
-            ) : (
-              paginatedServers.map((server) => (
-                <div
-                  key={server.id}
-                  className="grid grid-cols-[0.6fr_1fr_1.6fr_0.8fr_0.8fr_0.7fr] items-center px-4 py-4 text-sm"
-                >
-                  <span className="text-white/60">#{server.id.toString().padStart(3, "0")}</span>
-                  <p className="font-semibold text-white">{server.name}</p>
-                  <p className="text-xs text-white/60">{server.endpoint_url}</p>
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-24 rounded-full bg-[#111b26]">
-                      <div
-                        className="h-2 rounded-full bg-[#1f8ef1]"
-                        style={{ width: `${server.load_percent}%` }}
-                      />
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    Đang tải dữ liệu...
+                  </div>
+                ) : paginatedServers.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    Chưa có server nào.
+                  </div>
+                ) : (
+                  paginatedServers.map((server) => (
+                    <div
+                      key={server.id}
+                      className="grid grid-cols-[0.6fr_1fr_1.6fr_0.8fr_0.8fr_0.7fr] items-center px-4 py-4 text-sm"
+                    >
+                      <span className="text-white/60">
+                        #{server.id.toString().padStart(3, "0")}
+                      </span>
+                      <p className="font-semibold text-white">{server.name}</p>
+                      <p className="text-xs text-white/60">
+                        {server.endpoint_url}
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-24 rounded-full bg-[#111b26]">
+                          <div
+                            className="h-2 rounded-full bg-[#1f8ef1]"
+                            style={{ width: `${server.load_percent}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-white/60">
+                          {server.load_percent}%
+                        </span>
+                      </div>
+                      <span
+                        className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
+                          statusStyles[server.status] ||
+                          "bg-white/10 text-white/70"
+                        }`}
+                      >
+                        {statusLabels[server.status]}
+                      </span>
+                      <div className="flex items-center gap-2 text-xs">
+                        <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                          Sửa
+                        </button>
+                        <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
+                          Xóa
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-xs text-white/60">{server.load_percent}%</span>
-                  </div>
-                  <span
-                    className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
-                      statusStyles[server.status] || "bg-white/10 text-white/70"
-                    }`}
-                  >
-                    {statusLabels[server.status]}
-                  </span>
-                  <div className="flex items-center gap-2 text-xs">
-                    <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
-                      Sửa
-                    </button>
-                    <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70">
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -252,24 +283,29 @@ export default function AdminServersPage() {
 
         <div className="mt-4 flex items-center justify-between text-xs text-white/50">
           <span>
-            Hiển thị {filteredServers.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}
-            {" "}đến{" "}
-            {Math.min(currentPage * PAGE_SIZE, filteredServers.length)} server
+            Hiển thị{" "}
+            {filteredServers.length === 0
+              ? 0
+              : (currentPage - 1) * PAGE_SIZE + 1}{" "}
+            đến {Math.min(currentPage * PAGE_SIZE, filteredServers.length)}{" "}
+            server
           </span>
           <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-8 w-8 rounded-lg border text-xs ${
-                  page === currentPage
-                    ? "border-transparent bg-[#1f8ef1] text-white"
-                    : "border-white/10 bg-[#111b26] text-white/70"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-8 w-8 rounded-lg border text-xs ${
+                    page === currentPage
+                      ? "border-transparent bg-[#1f8ef1] text-white"
+                      : "border-white/10 bg-[#111b26] text-white/70"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
           </div>
         </div>
       </div>
@@ -323,7 +359,9 @@ export default function AdminServersPage() {
                   <select
                     className="w-full rounded-xl border border-white/10 bg-[#0f1924] px-3 py-2 text-sm text-white"
                     value={status}
-                    onChange={(event) => setStatus(event.target.value as Server["status"])}
+                    onChange={(event) =>
+                      setStatus(event.target.value as Server["status"])
+                    }
                   >
                     <option value="active">Hoạt động</option>
                     <option value="maintenance">Bảo trì</option>
@@ -333,7 +371,9 @@ export default function AdminServersPage() {
               </div>
             </div>
 
-            {formError ? <p className="mt-3 text-xs text-red-300">{formError}</p> : null}
+            {formError ? (
+              <p className="mt-3 text-xs text-red-300">{formError}</p>
+            ) : null}
 
             <div className="mt-6 flex items-center justify-end gap-3">
               <button

@@ -130,10 +130,10 @@ export default function AdminMoviesPage() {
       </div>
 
       <div className="rounded-2xl border border-white/5 bg-[#162333] p-5">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center text-sm text-white/70">
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-[#111b26] px-3 py-2">
             <svg
-              className="h-4 w-4"
+              className="h-4 w-4 shrink-0"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -151,7 +151,7 @@ export default function AdminMoviesPage() {
             />
           </div>
           <select
-            className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs text-white/70"
+            className="rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-xs text-white/70 w-full sm:w-auto"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -163,82 +163,90 @@ export default function AdminMoviesPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
-          <div className="grid grid-cols-[0.7fr_1.6fr_1.1fr_0.6fr_0.7fr_0.7fr_0.7fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
-            <span>Poster</span>
-            <span>Tên phim</span>
-            <span>Thể loại</span>
-            <span>Năm</span>
-            <span>Lượt xem</span>
-            <span>Trạng thái</span>
-            <span>Hành động</span>
-          </div>
-          <div className="divide-y divide-white/5">
-            {loading ? (
-              <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
-                Đang tải dữ liệu...
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
+              <div className="grid grid-cols-[0.7fr_1.6fr_1.1fr_0.6fr_0.7fr_0.7fr_0.7fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
+                <span>Poster</span>
+                <span>Tên phim</span>
+                <span>Thể loại</span>
+                <span>Năm</span>
+                <span>Lượt xem</span>
+                <span>Trạng thái</span>
+                <span>Hành động</span>
               </div>
-            ) : filteredMovies.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-white/60">
-                {movies.length === 0
-                  ? "Chưa có phim nào trong hệ thống."
-                  : "Không tìm thấy phim nào."}
-              </div>
-            ) : (
-              filteredMovies.map((movie) => {
-                const statusLabel = statusLabels[movie.status] || "Khác";
-                const statusStyle =
-                  statusStyles[movie.status] || "bg-white/10 text-white/70";
-                return (
-                  <div
-                    key={movie.id}
-                    className="grid grid-cols-[0.7fr_1.6fr_1.1fr_0.6fr_0.7fr_0.7fr_0.7fr] items-center px-4 py-4 text-sm"
-                  >
-                    <div className="h-14 w-10 overflow-hidden rounded-lg border border-white/10 bg-white/5">
-                      {movie.poster_url ? (
-                        <img
-                          src={movie.poster_url}
-                          alt={movie.title}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : null}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">{movie.title}</p>
-                      <p className="text-xs text-white/50">
-                        {movie.original_title || movie.slug}
-                      </p>
-                    </div>
-                    <p className="text-xs text-white/60">
-                      {movie.genres || "Chưa phân loại"}
-                    </p>
-                    <span className="text-xs text-white/60">
-                      {movie.release_year || "—"}
-                    </span>
-                    <span className="text-xs text-white/60">—</span>
-                    <span
-                      className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${statusStyle}`}
-                    >
-                      {statusLabel}
-                    </span>
-                    <div className="flex items-center gap-2 text-xs">
-                      <Link
-                        href={`/admin/movies/new?movieId=${movie.id}`}
-                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
-                      >
-                        Sửa
-                      </Link>
-                      <button
-                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
-                        onClick={() => handleDelete(movie.id)}
-                      >
-                        Xóa
-                      </button>
-                    </div>
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
+                    Đang tải dữ liệu...
                   </div>
-                );
-              })
-            )}
+                ) : filteredMovies.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    {movies.length === 0
+                      ? "Chưa có phim nào trong hệ thống."
+                      : "Không tìm thấy phim nào."}
+                  </div>
+                ) : (
+                  filteredMovies.map((movie) => {
+                    const statusLabel = statusLabels[movie.status] || "Khác";
+                    const statusStyle =
+                      statusStyles[movie.status] || "bg-white/10 text-white/70";
+                    return (
+                      <div
+                        key={movie.id}
+                        className="grid grid-cols-[0.7fr_1.6fr_1.1fr_0.6fr_0.7fr_0.7fr_0.7fr] items-center px-4 py-4 text-sm"
+                      >
+                        <div className="h-14 w-10 overflow-hidden rounded-lg border border-white/10 bg-white/5">
+                          {movie.poster_url ? (
+                            <img
+                              src={movie.poster_url}
+                              alt={movie.title}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : null}
+                        </div>
+                        <div className="pr-2">
+                          <p className="font-semibold text-white truncate">
+                            {movie.title}
+                          </p>
+                          <p className="text-xs text-white/50 truncate">
+                            {movie.original_title || movie.slug}
+                          </p>
+                        </div>
+                        <p className="text-xs text-white/60 truncate pr-2">
+                          {movie.genres || "Chưa phân loại"}
+                        </p>
+                        <span className="text-xs text-white/60">
+                          {movie.release_year || "—"}
+                        </span>
+                        <span className="text-xs text-white/60">—</span>
+                        <div className="flex">
+                          <span
+                            className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] whitespace-nowrap ${statusStyle}`}
+                          >
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <Link
+                            href={`/admin/movies/new?movieId=${movie.id}`}
+                            className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
+                          >
+                            Sửa
+                          </Link>
+                          <button
+                            className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                            onClick={() => handleDelete(movie.id)}
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

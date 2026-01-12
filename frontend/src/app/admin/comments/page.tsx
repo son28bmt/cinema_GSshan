@@ -42,7 +42,8 @@ const statusStyles: Record<string, string> = {
   pinned: "bg-blue-500/15 text-blue-300",
 };
 
-const formatDateTime = (value: string) => new Date(value).toLocaleString("vi-VN");
+const formatDateTime = (value: string) =>
+  new Date(value).toLocaleString("vi-VN");
 
 type StatusFilter = "all" | "pending" | "approved" | "reported" | "pinned";
 
@@ -130,7 +131,10 @@ export default function AdminCommentsPage() {
     });
   }, [comments, searchTerm, statusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredComments.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredComments.length / PAGE_SIZE)
+  );
   const paginatedComments = filteredComments.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
@@ -176,10 +180,22 @@ export default function AdminCommentsPage() {
       setStats((prev) => ({
         ...prev,
         total: Math.max(0, prev.total - 1),
-        pending: comment.status === "pending" ? Math.max(0, prev.pending - 1) : prev.pending,
-        approved: comment.status === "approved" ? Math.max(0, prev.approved - 1) : prev.approved,
-        reported: comment.status === "reported" ? Math.max(0, prev.reported - 1) : prev.reported,
-        pinned: comment.status === "pinned" ? Math.max(0, prev.pinned - 1) : prev.pinned,
+        pending:
+          comment.status === "pending"
+            ? Math.max(0, prev.pending - 1)
+            : prev.pending,
+        approved:
+          comment.status === "approved"
+            ? Math.max(0, prev.approved - 1)
+            : prev.approved,
+        reported:
+          comment.status === "reported"
+            ? Math.max(0, prev.reported - 1)
+            : prev.reported,
+        pinned:
+          comment.status === "pinned"
+            ? Math.max(0, prev.pinned - 1)
+            : prev.pinned,
       }));
     } catch (err) {
       setError("Không thể kết nối dữ liệu.");
@@ -204,7 +220,11 @@ export default function AdminCommentsPage() {
 
       <section className="grid gap-4 md:grid-cols-4">
         {[
-          { label: "Tổng bình luận", value: stats.total, tone: "text-green-300" },
+          {
+            label: "Tổng bình luận",
+            value: stats.total,
+            tone: "text-green-300",
+          },
           { label: "Chờ duyệt", value: stats.pending, tone: "text-yellow-300" },
           { label: "Đã duyệt", value: stats.approved, tone: "text-green-300" },
           { label: "Báo cáo", value: stats.reported, tone: "text-red-300" },
@@ -223,7 +243,14 @@ export default function AdminCommentsPage() {
       <div className="rounded-2xl border border-white/5 bg-[#162333] p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-[#111b26] px-3 py-2 text-sm text-white/60">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden
+            >
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20L17 17" />
             </svg>
@@ -258,68 +285,79 @@ export default function AdminCommentsPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
-          <div className="grid grid-cols-[0.7fr_1.6fr_1fr_0.8fr_0.9fr_0.7fr] bg-[#111b26] items-center justify-items-center px-4 py-3 text-xs text-white/50" >
-            <span>Người dùng</span>
-            <span>Nội dung bình luận</span>
-            <span>Phim / Tập</span>
-            <span>Trạng thái</span>
-            <span>Ngày tạo</span>
-            <span>Hành động</span>
-          </div>
-          <div className="divide-y divide-white/5">
-            {loading ? (
-              <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
-                 Đang tải dữ liệu...
+          <div className="overflow-x-auto">
+            <div className="min-w-[900px]">
+              <div className="grid grid-cols-[0.7fr_1.6fr_1fr_0.8fr_0.9fr_0.7fr] bg-[#111b26] items-center justify-items-center px-4 py-3 text-xs text-white/50">
+                <span>Người dùng</span>
+                <span>Nội dung bình luận</span>
+                <span>Phim / Tập</span>
+                <span>Trạng thái</span>
+                <span>Ngày tạo</span>
+                <span>Hành động</span>
               </div>
-            ) : paginatedComments.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-white/60">Chưa có bình luận.</div>
-            ) : (
-              paginatedComments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className="grid grid-cols-[0.7fr_1.6fr_1fr_0.8fr_0.9fr_0.7fr] justify-items-center  items-center px-4 py-4 text-sm"
-                >
-                  <div >
-                    <p className="font-semibold text-white">{comment.author_name}</p>
-                    <p className="text-xs text-white/50">
-                      {comment.author_email || comment.author_ip || "-"}
-                    </p>
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="flex items-center gap-3 px-4 py-6 text-sm text-white/60">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-transparent" />
+                    Đang tải dữ liệu...
                   </div>
-                  <div className="text-xs text-white/60">
-                    <p>{comment.content}</p>
-                    {comment.report_reason ? (
-                      <p className="mt-2 text-[11px] text-red-300">
-                        Lý do báo cáo: {comment.report_reason}
-                      </p>
-                    ) : null}
+                ) : paginatedComments.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    Chưa có bình luận.
                   </div>
-                  <p className="text-xs text-white/60">
-                    {comment.movie_title || "-"}
-                    {comment.episode_number ? ` · Tập ${comment.episode_number}` : ""}
-                  </p>
-                  <span
-                    className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
-                      statusStyles[comment.status] || "bg-white/10 text-white/70"
-                    }`}
-                  >
-                    {statusLabels[comment.status] || comment.status}
-                  </span>
-                  <span className="text-xs text-white/60">
-                    {formatDateTime(comment.created_at)}
-                  </span>
-                  <div className="flex items-center gap-2 text-xs">
-                    <button
-                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 disabled:cursor-not-allowed disabled:opacity-60"
-                      onClick={() => handleDelete(comment)}
-                      disabled={deletingId === comment.id}
+                ) : (
+                  paginatedComments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="grid grid-cols-[0.7fr_1.6fr_1fr_0.8fr_0.9fr_0.7fr] justify-items-center  items-center px-4 py-4 text-sm"
                     >
-                      {deletingId === comment.id ? "Đang xóa" : "Xóa"}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                      <div>
+                        <p className="font-semibold text-white">
+                          {comment.author_name}
+                        </p>
+                        <p className="text-xs text-white/50">
+                          {comment.author_email || comment.author_ip || "-"}
+                        </p>
+                      </div>
+                      <div className="text-xs text-white/60">
+                        <p>{comment.content}</p>
+                        {comment.report_reason ? (
+                          <p className="mt-2 text-[11px] text-red-300">
+                            Lý do báo cáo: {comment.report_reason}
+                          </p>
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-white/60">
+                        {comment.movie_title || "-"}
+                        {comment.episode_number
+                          ? ` · Tập ${comment.episode_number}`
+                          : ""}
+                      </p>
+                      <span
+                        className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
+                          statusStyles[comment.status] ||
+                          "bg-white/10 text-white/70"
+                        }`}
+                      >
+                        {statusLabels[comment.status] || comment.status}
+                      </span>
+                      <span className="text-xs text-white/60">
+                        {formatDateTime(comment.created_at)}
+                      </span>
+                      <div className="flex items-center gap-2 text-xs">
+                        <button
+                          className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 disabled:cursor-not-allowed disabled:opacity-60"
+                          onClick={() => handleDelete(comment)}
+                          disabled={deletingId === comment.id}
+                        >
+                          {deletingId === comment.id ? "Đang xóa" : "Xóa"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -331,23 +369,29 @@ export default function AdminCommentsPage() {
 
         <div className="mt-4 flex items-center justify-between text-xs text-white/50">
           <span>
-            Hiển thị {filteredComments.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1} đến{" "}
-            {Math.min(currentPage * PAGE_SIZE, filteredComments.length)} kết quả
+            Hiển thị{" "}
+            {filteredComments.length === 0
+              ? 0
+              : (currentPage - 1) * PAGE_SIZE + 1}{" "}
+            đến {Math.min(currentPage * PAGE_SIZE, filteredComments.length)} kết
+            quả
           </span>
           <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`h-8 w-8 rounded-lg border text-xs ${
-                  page === currentPage
-                    ? "border-transparent bg-[#1f8ef1] text-white"
-                    : "border-white/10 bg-[#111b26] text-white/70"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-8 w-8 rounded-lg border text-xs ${
+                    page === currentPage
+                      ? "border-transparent bg-[#1f8ef1] text-white"
+                      : "border-white/10 bg-[#111b26] text-white/70"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
           </div>
         </div>
       </div>

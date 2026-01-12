@@ -73,13 +73,7 @@ const formatRelativeTime = (value: string) => {
   return `Cập nhật ${days} ngày trước`;
 };
 
-const readFileAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+// readFileAsDataUrl removed - using R2 upload instead
 
 const Spinner = ({ label }: { label?: string }) => (
   <div className="flex items-center justify-center gap-3 py-10 text-sm text-white/60">
@@ -95,6 +89,37 @@ const stripHtml = (value: string | null | undefined) =>
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .trim();
+
+const DescriptionWithToggle = ({
+  description,
+}: {
+  description: string | null;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const content = description || "Chưa có mô tả cho phim này.";
+  // Strip HTML for length check, but render HTML content
+  const plainText = content.replace(/<[^>]*>/g, "");
+  const isLong = plainText.length > 150;
+
+  return (
+    <div className="space-y-1">
+      <div
+        className={`text-sm text-white/60 ${
+          expanded ? "" : "line-clamp-3 md:line-clamp-none"
+        }`}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+      {isLong && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs font-medium text-[var(--accent-2)] hover:underline md:hidden"
+        >
+          {expanded ? "Thu gọn" : "Xem thêm"}
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default function AdminEpisodesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -334,8 +359,21 @@ export default function AdminEpisodesPage() {
     setSaveError("");
 
     try {
+      // Helper to upload file
+      const uploadFile = async (file: File) => {
+        const formData = new FormData();
+        formData.append("image", file);
+        const res = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error("Failed to upload image");
+        const data = await res.json();
+        return data.result.variants[0] as string;
+      };
+
       const thumbnailUrl = thumbnailFile
-        ? await readFileAsDataUrl(thumbnailFile)
+        ? await uploadFile(thumbnailFile)
         : null;
       const releaseAt = releaseDate
         ? releaseTime
@@ -491,9 +529,11 @@ export default function AdminEpisodesPage() {
                   : "Chưa rõ"}{" "}
                 • {selectedMovie.genres || "Chưa phân loại"}
               </p>
-              <p className="text-sm text-white/60">
-                {selectedMovie.description || "Chưa có mô tả cho phim này."}
-              </p>
+              <div className="text-sm text-white/60">
+                <DescriptionWithToggle
+                  description={selectedMovie.description}
+                />
+              </div>
             </div>
             <div className="flex gap-6 text-xs text-white/60">
               {[
@@ -901,71 +941,75 @@ export default function AdminEpisodesPage() {
           </div>
 
           <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
-            <div className="grid grid-cols-[0.5fr_1.6fr_1.4fr_0.8fr_0.8fr_0.8fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
-              <span>#</span>
-              <span>Tên tập</span>
-              <span>Video source</span>
-              <span>Lượt xem</span>
-              <span>Trạng thái</span>
-              <span>Hành động</span>
-            </div>
-            <div className="divide-y divide-white/5">
-              {loadingEpisodes ? (
-                <Spinner label="Đang tải tập phim..." />
-              ) : filteredEpisodes.length === 0 ? (
-                <div className="px-4 py-6 text-sm text-white/60">
-                  {episodes.length === 0
-                    ? "Chưa có tập nào cho phim này."
-                    : "Không tìm thấy tập phim nào."}
+            <div className="overflow-x-auto">
+              <div className="min-w-[900px]">
+                <div className="grid grid-cols-[0.5fr_1.6fr_1.4fr_0.8fr_0.8fr_0.8fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
+                  <span>#</span>
+                  <span>Tên tập</span>
+                  <span>Video source</span>
+                  <span>Lượt xem</span>
+                  <span>Trạng thái</span>
+                  <span>Hành động</span>
                 </div>
-              ) : (
-                filteredEpisodes.map((episode) => (
-                  <div
-                    key={episode.id}
-                    className="grid grid-cols-[0.5fr_1.6fr_1.4fr_0.8fr_0.8fr_0.8fr] items-center px-4 py-4 text-sm"
-                  >
-                    <span className="text-white/60">
-                      {episode.episode_number.toString().padStart(2, "0")}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-white">
-                        {episode.title || "Chưa có tên"}
-                      </p>
-                      <p className="text-xs text-white/40">
-                        {formatRelativeTime(episode.updated_at)}
-                      </p>
+                <div className="divide-y divide-white/5">
+                  {loadingEpisodes ? (
+                    <Spinner label="Đang tải tập phim..." />
+                  ) : filteredEpisodes.length === 0 ? (
+                    <div className="px-4 py-6 text-sm text-white/60">
+                      {episodes.length === 0
+                        ? "Chưa có tập nào cho phim này."
+                        : "Không tìm thấy tập phim nào."}
                     </div>
-                    <div className="truncate text-xs text-white/60">
-                      {episode.video_url || "Chưa có video"}
-                    </div>
-                    <span className="text-xs text-white/60">
-                      {formatViews(episode.views || 0)}
-                    </span>
-                    <span
-                      className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
-                        statusStyles[episode.status] ||
-                        "bg-white/10 text-white/70"
-                      }`}
-                    >
-                      {statusLabels[episode.status] || episode.status}
-                    </span>
-                    <div className="flex items-center gap-2 text-xs">
-                      <button
-                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
-                        onClick={() => handleEdit(episode)}
+                  ) : (
+                    filteredEpisodes.map((episode) => (
+                      <div
+                        key={episode.id}
+                        className="grid grid-cols-[0.5fr_1.6fr_1.4fr_0.8fr_0.8fr_0.8fr] items-center px-4 py-4 text-sm"
                       >
-                        Sửa
-                      </button>
-                      <button
-                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
-                        onClick={() => handleDelete(episode.id)}
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
+                        <span className="text-white/60">
+                          {episode.episode_number.toString().padStart(2, "0")}
+                        </span>
+                        <div>
+                          <p className="font-semibold text-white">
+                            {episode.title || "Chưa có tên"}
+                          </p>
+                          <p className="text-xs text-white/40">
+                            {formatRelativeTime(episode.updated_at)}
+                          </p>
+                        </div>
+                        <div className="truncate text-xs text-white/60">
+                          {episode.video_url || "Chưa có video"}
+                        </div>
+                        <span className="text-xs text-white/60">
+                          {formatViews(episode.views || 0)}
+                        </span>
+                        <span
+                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[11px] ${
+                            statusStyles[episode.status] ||
+                            "bg-white/10 text-white/70"
+                          }`}
+                        >
+                          {statusLabels[episode.status] || episode.status}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs">
+                          <button
+                            className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-white/10 transition-colors"
+                            onClick={() => handleEdit(episode)}
+                          >
+                            Sửa
+                          </button>
+                          <button
+                            className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-white/70 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                            onClick={() => handleDelete(episode.id)}
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 

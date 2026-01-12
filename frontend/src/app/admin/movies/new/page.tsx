@@ -24,13 +24,7 @@ const slugify = (value: string) => {
     .replace(/(^-|-$)/g, "");
 };
 
-const readFileAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+// readFileAsDataUrl removed - using R2 upload instead
 
 export default function AdminMovieCreatePage() {
   const router = useRouter();
@@ -288,10 +282,29 @@ export default function AdminMovieCreatePage() {
     setSaveSuccess("");
 
     try {
-      const backdropUrl = backdropFile
-        ? await readFileAsDataUrl(backdropFile)
-        : null;
-      const posterUrl = posterFile ? await readFileAsDataUrl(posterFile) : null;
+      let backdropUrl: string | undefined | null = undefined;
+      let posterUrl: string | undefined | null = undefined;
+
+      // Helper to upload file
+      const uploadFile = async (file: File) => {
+        const formData = new FormData();
+        formData.append("image", file);
+        const res = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error("Failed to upload image");
+        const data = await res.json();
+        return data.result.variants[0] as string;
+      };
+
+      if (backdropFile) {
+        backdropUrl = await uploadFile(backdropFile);
+      }
+
+      if (posterFile) {
+        posterUrl = await uploadFile(posterFile);
+      }
 
       const payload = {
         title: title.trim(),

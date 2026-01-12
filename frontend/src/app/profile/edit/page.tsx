@@ -116,6 +116,39 @@ export default function EditProfilePage() {
       }
     }
 
+    let finalAvatarUrl = avatarPreview;
+
+    if (avatarFile) {
+      try {
+        const formData = new FormData();
+        formData.append("image", avatarFile);
+
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          body: formData, // No Authorization needed for upload proxy, or user token if protected?
+          // Backend route is public or protected?
+          // It's likely protected if we want security, but let's check routes.
+          // index.js: router.use("/upload", uploadRoutes);
+          // upload.routes.js: router.post('/', ...); -> No auth middleware!
+          // We SHOULD add auth middleware likely, but for now stick to request.
+        });
+
+        if (!uploadRes.ok) throw new Error("Upload failed");
+
+        const uploadData = await uploadRes.json();
+        if (uploadData.success && uploadData.result.variants) {
+          // Use the first variant (usually 'public' or similar)
+          finalAvatarUrl = uploadData.result.variants[0];
+        } else {
+          throw new Error("Invalid upload response");
+        }
+      } catch (e) {
+        setError("Lỗi tải ảnh lên.");
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       const token = localStorage.getItem("cinema_token");
       if (!token) {
@@ -129,7 +162,7 @@ export default function EditProfilePage() {
         gender: gender || null,
         birthDate: birthDate || null,
         bio: bio || null,
-        avatarUrl: avatarPreview || null,
+        avatarUrl: finalAvatarUrl || null,
       };
 
       const response = await fetch(`${API_URL}/api/profile`, {

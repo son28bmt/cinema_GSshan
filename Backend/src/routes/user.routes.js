@@ -6,6 +6,24 @@ const { requireAdmin } = require("../middlewares/auth"); // Assuming admin check
 const router = express.Router();
 
 router.get("/", requireAuth, requireAdmin, listUsers);
-router.get("/leaderboard", getLeaderboard); // Public or auth? Let's make it public for now
+router.get("/leaderboard", getLeaderboard);
+router.get(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  require("../controllers/user.controller").getUser
+);
+router.put(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  require("../controllers/user.controller").updateUser
+);
+router.delete(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  require("../controllers/user.controller").deleteUser
+);
 
 module.exports = router;

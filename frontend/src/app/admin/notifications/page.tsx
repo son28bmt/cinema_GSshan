@@ -354,60 +354,64 @@ export default function AdminNotificationsPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/5">
-          <div className="grid grid-cols-[2fr_1.2fr_0.8fr_0.8fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
-            <span>Tiêu đề thông báo</span>
-            <span>Đối tượng</span>
-            <span>Ngày gửi</span>
-            <span>Trạng thái</span>
-          </div>
-          <div className="divide-y divide-white/5">
-            {loading ? (
-              <div className="px-4 py-6 text-sm text-white/60">
-                Đang tải dữ liệu...
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
+              <div className="grid grid-cols-[2fr_1.2fr_0.8fr_0.8fr] bg-[#111b26] px-4 py-3 text-xs text-white/50">
+                <span>Tiêu đề thông báo</span>
+                <span>Đối tượng</span>
+                <span>Ngày gửi</span>
+                <span>Trạng thái</span>
               </div>
-            ) : notifications.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-white/60">
-                Chưa có thông báo nào.
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    Đang tải dữ liệu...
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-white/60">
+                    Chưa có thông báo nào.
+                  </div>
+                ) : (
+                  notifications.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[2fr_1.2fr_0.8fr_0.8fr] items-center px-4 py-4 text-sm"
+                    >
+                      <div>
+                        <p className="font-semibold text-white">{item.title}</p>
+                        <p className="text-xs text-white/60">
+                          {item.message.length > 120
+                            ? `${item.message.slice(0, 120)}...`
+                            : item.message}
+                        </p>
+                      </div>
+                      <p className="text-xs text-white/60">
+                        {getAudienceLabel(item)}
+                      </p>
+                      <p className="text-xs text-white/60">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] ${
+                            statusClasses[item.status] ||
+                            "bg-white/10 text-white/70"
+                          }`}
+                        >
+                          {statusLabels[item.status]}
+                        </span>
+                        <button
+                          className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/70"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            ) : (
-              notifications.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-[2fr_1.2fr_0.8fr_0.8fr] items-center px-4 py-4 text-sm"
-                >
-                  <div>
-                    <p className="font-semibold text-white">{item.title}</p>
-                    <p className="text-xs text-white/60">
-                      {item.message.length > 120
-                        ? `${item.message.slice(0, 120)}...`
-                        : item.message}
-                    </p>
-                  </div>
-                  <p className="text-xs text-white/60">
-                    {getAudienceLabel(item)}
-                  </p>
-                  <p className="text-xs text-white/60">
-                    {new Date(item.created_at).toLocaleDateString()}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] ${
-                        statusClasses[item.status] ||
-                        "bg-white/10 text-white/70"
-                      }`}
-                    >
-                      {statusLabels[item.status]}
-                    </span>
-                    <button
-                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/70"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+            </div>
           </div>
         </div>
 

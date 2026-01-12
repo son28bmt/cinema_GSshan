@@ -51,7 +51,8 @@ const getOverview = async (): Promise<OverviewResponse | null> => {
 
 export default async function AdminPage() {
   const overview = await getOverview();
-  const weeklyPoints = overview?.weeklyPoints || Array.from({ length: 7 }, () => 0);
+  const weeklyPoints =
+    overview?.weeklyPoints || Array.from({ length: 7 }, () => 0);
   const maxPoint = Math.max(...weeklyPoints, 1);
   const linePoints = weeklyPoints
     .map((value, index) => {
@@ -84,7 +85,7 @@ export default async function AdminPage() {
         </a>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-4">
+      <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[
           {
             label: "Tổng lượt xem",
@@ -118,25 +119,49 @@ export default async function AdminPage() {
             <div className="flex items-center justify-between">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/5 text-[#6bb7ff]">
                 {stat.icon === "film" ? (
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden
+                  >
                     <path d="M4 5h16v14H4z" />
-                    <path d="M4 9h16M9 5v14M15 5v14" stroke="currentColor" strokeWidth="1.2" />
+                    <path
+                      d="M4 9h16M9 5v14M15 5v14"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                    />
                   </svg>
                 ) : null}
                 {stat.icon === "users" ? (
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden
+                  >
                     <path d="M8 11a4 4 0 100-8 4 4 0 000 8zM16 13a3 3 0 100-6 3 3 0 000 6z" />
                     <path d="M2 20c1.6-3 4.3-5 7-5s5.4 2 7 5" />
                     <path d="M14 20c.8-1.6 2.3-2.8 4-3.3" />
                   </svg>
                 ) : null}
                 {stat.icon === "chat" ? (
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden
+                  >
                     <path d="M4 5h16v10H8l-4 4z" />
                   </svg>
                 ) : null}
                 {stat.icon === "eye" ? (
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden
+                  >
                     <path d="M12 5c5 0 9 4.5 9 7s-4 7-9 7-9-4.5-9-7 4-7 9-7z" />
                     <circle cx="12" cy="12" r="3" fill="#0f1720" />
                   </svg>
@@ -152,7 +177,7 @@ export default async function AdminPage() {
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <section className="grid gap-6 grid-cols-1 lg:grid-cols-[2fr_1fr]">
         <div className="rounded-2xl border border-white/5 bg-[#162333] p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -216,55 +241,66 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-2xl border border-white/5 bg-[#162333] p-6">
+      <section className="grid gap-6 grid-cols-1 lg:grid-cols-[2fr_1fr]">
+        <div className="rounded-2xl border border-white/5 bg-[#162333] p-6 overflow-hidden">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">Phim mới cập nhật</p>
             <a href="/admin/movies" className="text-xs text-[#1f8ef1]">
               Xem tất cả
             </a>
           </div>
-          <div className="mt-6 grid grid-cols-[1.4fr_1fr_0.6fr_0.6fr_0.6fr] text-xs text-white/40">
-            <span>Phim</span>
-            <span>Thể loại</span>
-            <span>Trạng thái</span>
-            <span>Lượt xem</span>
-            <span>Hành động</span>
-          </div>
-          <div className="mt-4 space-y-4">
-            {recentMovies.length === 0 ? (
-              <div className="rounded-xl border border-white/5 bg-[#111b26] px-4 py-3 text-sm text-white/60">
-                Chưa có phim nào.
+
+          <div className="mt-6 overflow-x-auto">
+            <div className="min-w-[600px]">
+              <div className="grid grid-cols-[1.4fr_1fr_0.6fr_0.6fr_0.6fr] text-xs text-white/40 mb-4 px-2">
+                <span>Phim</span>
+                <span>Thể loại</span>
+                <span>Trạng thái</span>
+                <span>Lượt xem</span>
+                <span>Hành động</span>
               </div>
-            ) : (
-              recentMovies.map((movie) => (
-                <div
-                  key={movie.id}
-                  className="grid grid-cols-[1.4fr_1fr_0.6fr_0.6fr_0.6fr] items-center rounded-xl border border-white/5 bg-[#111b26] px-4 py-3 text-sm"
-                >
-                  <div>
-                    <p className="font-semibold">{movie.title}</p>
-                    <p className="text-xs text-white/50">{movie.year || "—"}</p>
+              <div className="space-y-4">
+                {recentMovies.length === 0 ? (
+                  <div className="rounded-xl border border-white/5 bg-[#111b26] px-4 py-3 text-sm text-white/60">
+                    Chưa có phim nào.
                   </div>
-                  <p className="text-xs text-white/60">{movie.genres || "Chưa phân loại"}</p>
-                  <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs text-green-400">
-                    {statusLabels[movie.status] || movie.status}
-                  </span>
-                  <span className="text-xs text-white/60">{formatViews(movie.views)}</span>
-                  <div className="flex items-center gap-2 text-[#6bb7ff]">
-                    <a
-                      href="/admin/movies"
-                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs"
+                ) : (
+                  recentMovies.map((movie) => (
+                    <div
+                      key={movie.id}
+                      className="grid grid-cols-[1.4fr_1fr_0.6fr_0.6fr_0.6fr] items-center rounded-xl border border-white/5 bg-[#111b26] px-4 py-3 text-sm"
                     >
-                      Sửa
-                    </a>
-                    <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs">
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                      <div>
+                        <p className="font-semibold">{movie.title}</p>
+                        <p className="text-xs text-white/50">
+                          {movie.year || "—"}
+                        </p>
+                      </div>
+                      <p className="text-xs text-white/60">
+                        {movie.genres || "Chưa phân loại"}
+                      </p>
+                      <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs text-green-400 w-fit">
+                        {statusLabels[movie.status] || movie.status}
+                      </span>
+                      <span className="text-xs text-white/60">
+                        {formatViews(movie.views)}
+                      </span>
+                      <div className="flex items-center gap-2 text-[#6bb7ff]">
+                        <a
+                          href="/admin/movies"
+                          className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs"
+                        >
+                          Sửa
+                        </a>
+                        <button className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs">
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

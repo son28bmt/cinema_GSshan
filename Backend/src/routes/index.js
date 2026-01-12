@@ -32,5 +32,7 @@ router.use("/admin", adminRoutes);
 router.use("/profile", profileRoutes);
 router.use("/subscriptions", subscriptionRoutes);
 router.use("/notifications", notificationRoutes);
+const uploadRoutes = require("./upload.routes");
+router.use("/upload", uploadRoutes);
 
 module.exports = router;

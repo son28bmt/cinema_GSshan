@@ -291,18 +291,58 @@ export default function AdminShell({ children }: AdminShellProps) {
     return "📄";
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   return (
     <div className="min-h-screen bg-[#0f1720] text-slate-100">
-      <div className="grid min-h-screen lg:grid-cols-[260px_1fr]">
-        <aside className="flex flex-col border-r border-white/5 bg-[#0c131c]">
-          <div className="flex items-center gap-3 border-b border-white/5 px-6 py-5">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#1f8ef1] text-white">
-              GS
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/5 bg-[#0c131c] transition-transform duration-200 lg:static lg:translate-x-0 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-white/5 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#1f8ef1] text-white">
+                GS
+              </div>
+              <div>
+                <p className="text-base font-semibold">GuangShan Admin</p>
+                <p className="text-xs text-white/50">Quản lý hệ thống</p>
+              </div>
             </div>
-            <div>
-              <p className="text-base font-semibold">GuangShan Admin</p>
-              <p className="text-xs text-white/50">Quản lý hệ thống</p>
-            </div>
+            {/* Close button for mobile */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="rounded-lg p-1 text-white/60 hover:bg-white/5 lg:hidden"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
 
           <nav className="flex-1 space-y-2 px-4 py-6">
@@ -341,9 +381,28 @@ export default function AdminShell({ children }: AdminShellProps) {
           </div>
         </aside>
 
-        <div className="flex min-h-screen flex-col">
-          <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 bg-[#111b26] px-6 py-4">
-            <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-4 border-b border-white/5 bg-[#111b26]/90 px-6 py-4 backdrop-blur-md">
+            {/* Left Group (Hamburger + Logo) */}
+            <div className="flex items-center gap-3 order-1">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="mr-2 rounded-lg p-1 text-white/60 hover:bg-white/5 lg:hidden"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/5 text-[#6bb7ff]">
                 <svg
                   className="h-5 w-5"
@@ -354,13 +413,48 @@ export default function AdminShell({ children }: AdminShellProps) {
                   <path d="M12 3l7 5v9a2 2 0 01-2 2H7a2 2 0 01-2-2V8l7-5z" />
                 </svg>
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <p className="text-lg font-semibold">Admin Bảng điều khiển</p>
                 <p className="text-xs text-white/50">MovieWorld</p>
               </div>
             </div>
 
-            <div ref={searchRef} className="relative w-full max-w-md">
+            {/* Right Group (User Profile) - Moved up in DOM for mobile order */}
+            <div className="flex items-center gap-3 order-2 lg:order-3">
+              <Link
+                href="/admin/notifications"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/5"
+                aria-label="Thông báo"
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path d="M12 2a6 6 0 016 6v4l2 3H4l2-3V8a6 6 0 016-6z" />
+                </svg>
+              </Link>
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <div className="h-8 w-8 rounded-full bg-white/20" />
+                <div className="hidden text-xs sm:block">
+                  <p className="font-semibold text-white">Admin</p>
+                  <p className="text-white/50">Super User</p>
+                </div>
+              </div>
+              <button
+                className="hidden sm:block rounded-xl border border-white/10 bg-[#1f8ef1] px-4 py-2 text-xs font-semibold text-white"
+                onClick={handleLogout}
+              >
+                Đăng xuất
+              </button>
+            </div>
+
+            {/* Middle Group (Search) - Full width on mobile */}
+            <div
+              ref={searchRef}
+              className="relative w-full order-3 lg:order-2 lg:w-auto lg:max-w-md lg:flex-1 lg:px-8"
+            >
               <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#0c131c] px-4 py-2 text-sm text-white/60">
                 <svg
                   className="h-4 w-4"
@@ -426,36 +520,6 @@ export default function AdminShell({ children }: AdminShellProps) {
                     )}
                 </div>
               )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/admin/notifications"
-                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/5"
-                aria-label="Thông báo"
-              >
-                <svg
-                  className="h-4 w-4"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  aria-hidden
-                >
-                  <path d="M12 2a6 6 0 016 6v4l2 3H4l2-3V8a6 6 0 016-6z" />
-                </svg>
-              </Link>
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <div className="h-8 w-8 rounded-full bg-white/20" />
-                <div className="text-xs">
-                  <p className="font-semibold text-white">Admin</p>
-                  <p className="text-white/50">Super User</p>
-                </div>
-              </div>
-              <button
-                className="rounded-xl border border-white/10 bg-[#1f8ef1] px-4 py-2 text-xs font-semibold text-white"
-                onClick={handleLogout}
-              >
-                Đăng xuất
-              </button>
             </div>
           </header>
 

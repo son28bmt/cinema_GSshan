@@ -111,6 +111,32 @@ const getLeaderboard = async (limit = 10) => {
   return rows;
 };
 
+const deleteUser = async (userId) => {
+  await pool.query("DELETE FROM users WHERE id = ?", [userId]);
+};
+
+const updateUserRoleStatus = async (userId, { role, status }) => {
+  const updates = [];
+  const values = [];
+
+  if (role) {
+    updates.push("role = ?");
+    values.push(role);
+  }
+  if (status) {
+    updates.push("status = ?");
+    values.push(status);
+  }
+
+  if (updates.length === 0) return;
+
+  values.push(userId);
+  await pool.query(
+    `UPDATE users SET ${updates.join(", ")} WHERE id = ?`,
+    values
+  );
+};
+
 module.exports = {
   listUsers,
   findUserByEmail,
@@ -120,8 +146,9 @@ module.exports = {
   findUserAuthById,
   updateUserProfile,
   updateUserEmail,
-  updateUserEmail,
   updateUserPassword,
   updateUserXp,
   getLeaderboard,
+  deleteUser,
+  updateUserRoleStatus,
 };
