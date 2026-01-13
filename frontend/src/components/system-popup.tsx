@@ -19,21 +19,28 @@ export function SystemPopup() {
     const fetchPopup = async () => {
       try {
         const token = localStorage.getItem("cinema_token");
-        if (!token) return;
+        const headers: HeadersInit = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
 
         const response = await fetch(`${API_URL}/api/notifications/popup`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         });
 
         if (!response.ok) return;
 
         const data = await response.json();
         if (data.popup) {
-          // Check if already dismissed
-          const dismissedId = localStorage.getItem("dismissed_popup_id");
-          if (dismissedId !== data.popup.id.toString()) {
+          if (token) {
+            // Logged in: Check if already dismissed
+            const dismissedId = localStorage.getItem("dismissed_popup_id");
+            if (dismissedId !== data.popup.id.toString()) {
+              setPopup(data.popup);
+              setVisible(true);
+            }
+          } else {
+            // Guest: Always show (reload will show again)
             setPopup(data.popup);
             setVisible(true);
           }
@@ -47,7 +54,9 @@ export function SystemPopup() {
   }, []);
 
   const handleClose = () => {
-    if (popup) {
+    const token = localStorage.getItem("cinema_token");
+    if (popup && token) {
+      // Only persist dismissal for logged-in users
       localStorage.setItem("dismissed_popup_id", popup.id.toString());
     }
     setVisible(false);

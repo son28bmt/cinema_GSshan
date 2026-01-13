@@ -259,6 +259,19 @@ const notifyEpisodeRelease = async (movieId, episodeTitle, episodeNumber) => {
 };
 
 const getLatestPopup = async ({ userId, role }) => {
+  if (!userId) {
+    const [rows] = await pool.query(
+      `SELECT n.id, n.title, n.message, n.created_at
+       FROM notifications n
+       WHERE n.type = 'popup'
+         AND n.status = 'sent'
+         AND n.audience = 'all'
+       ORDER BY n.created_at DESC
+       LIMIT 1`
+    );
+    return rows[0];
+  }
+
   // Logic: Get the latest 'sent' popup that matches the user's audience criteria
   // And was created AFTER the user joined (handled by buildAudienceClause)
   const [rows] = await pool.query(

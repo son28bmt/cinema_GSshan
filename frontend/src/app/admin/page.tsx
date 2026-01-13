@@ -56,7 +56,7 @@ export default async function AdminPage() {
   const maxPoint = Math.max(...weeklyPoints, 1);
   const linePoints = weeklyPoints
     .map((value, index) => {
-      const x = index * 80;
+      const x = index * 100 + 50;
       const y = 110 - Math.round((value / maxPoint) * 90);
       return `${x},${y}`;
     })
@@ -189,7 +189,7 @@ export default async function AdminPage() {
             </p>
           </div>
           <div className="mt-6 rounded-xl border border-white/5 bg-[#111b26] p-4">
-            <svg viewBox="0 0 480 130" className="h-40 w-full">
+            <svg viewBox="0 0 700 130" className="h-40 w-full">
               <defs>
                 <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#1f8ef1" stopOpacity="0.4" />
@@ -201,13 +201,15 @@ export default async function AdminPage() {
                 fill="none"
                 stroke="#1f8ef1"
                 strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
               <polygon
-                points={`0,130 ${linePoints} 480,130`}
+                points={`50,130 ${linePoints} 650,130`}
                 fill="url(#lineGradient)"
               />
             </svg>
-            <div className="mt-3 flex justify-between text-xs text-white/50">
+            <div className="mt-3 grid grid-cols-7 text-center text-xs text-white/50">
               {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"].map(
                 (label) => (
                   <span key={label}>{label}</span>
@@ -226,9 +228,9 @@ export default async function AdminPage() {
               : [{ label: "Chưa có", value: 0 }]
             ).map((bar) => (
               <div key={bar.label} className="flex flex-col items-center gap-3">
-                <div className="flex h-32 w-full items-end rounded-full bg-[#111b26]">
+                <div className="flex h-32 w-1/2 items-end rounded-md bg-[#111b26] overflow-hidden mx-auto">
                   <div
-                    className="w-full rounded-full bg-[#1f8ef1]"
+                    className="w-full rounded-t-md bg-[#1f8ef1] transition-all duration-500 ease-out hover:opacity-90"
                     style={{
                       height: `${Math.round((bar.value / maxCategory) * 100)}%`,
                     }}

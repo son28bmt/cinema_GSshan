@@ -212,9 +212,12 @@ const markAllRead = async (req, res, next) => {
 
 const getPopup = async (req, res, next) => {
   try {
+    const userId = req.user ? req.user.id : null;
+    const role = req.user ? req.user.role : "guest";
+
     const popup = await notificationService.getLatestPopup({
-      userId: req.user.id,
-      role: req.user.role,
+      userId,
+      role,
     });
     return res.status(200).json({ popup });
   } catch (err) {
